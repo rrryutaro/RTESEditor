@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "RTESEditor"
+version = "0.1.0"
+description = "Unified plugin editor for The Elder Scrolls series"
+requires-python = ">=3.11"
+dependencies = [
+    "PySide6>=6.6.0",
+]
+
+[project.scripts]
+rteseditor = "main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "tes3", "app", "ui"]

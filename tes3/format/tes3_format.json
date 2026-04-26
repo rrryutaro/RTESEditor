@@ -1,0 +1,5905 @@
+﻿{
+  "Version": "0.2.1.2",
+  "Records": [
+    {
+      "RecordName": "TES3",
+      "Description": "Tes3ヘッダー",
+      "IsShow": false,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "HEDR",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "バージョン（Morrowindの場合は1.2、BloodmoonおよびTribunalの場合は1.3）"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 1,
+                  "Description": "ファイルは、ファイル拡張子に関係なく、マスターとして扱う必要があります"
+                }
+              ],
+              "Description": "フラグ"
+            },
+            {
+              "DataType": "char",
+              "DataSize": 32,
+              "Description": "会社名"
+            },
+            {
+              "DataType": "char",
+              "DataSize": 256,
+              "Description": "ファイル説明"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "この後のレコード数"
+            }
+          ],
+          "Description": "ヘッダー",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "MAST",
+              "DataType": "zstring",
+              "Description": "マスターファイル名"
+            },
+            {
+              "FieldName": "DATA",
+              "DataType": "uint64",
+              "Description": "以前のマスターファイルのサイズ（バイト単位）（プラグインのバージョン追跡に使用）"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "GMST",
+      "Description": "ゲーム設定",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "string",
+          "Description": "ゲーム設定の名称",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FLTV",
+          "DataType": "float32",
+          "Description": "浮動小数点での値",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "INTV",
+          "DataType": "int32",
+          "Description": "整数での値",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "STRV",
+          "DataType": "string",
+          "Description": "文字列での値",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        }
+      ]
+    },
+    {
+      "RecordName": "GLOB",
+      "Description": "グローバル変数情報",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "グローバル変数の名前",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "char",
+          "DataSize": 1,
+          "Description": "フィールドタイプ（s = short、l = long、f = float）",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FLTV",
+          "DataType": "float32",
+          "Description": "指定されたタイプに関係なく全ての値はfloatとして格納される。",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "CLAS",
+      "Description": "クラス",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "クラス名",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "CLDT",
+          "DataType": "struct",
+          "DataSize": 60,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "主属性",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "ストレングス"
+                },
+                {
+                  "Value": 1,
+                  "Description": "インテリジェンス"
+                },
+                {
+                  "Value": 2,
+                  "Description": "ウィルパワー"
+                },
+                {
+                  "Value": 3,
+                  "Description": "アジリティ"
+                },
+                {
+                  "Value": 4,
+                  "Description": "スピード"
+                },
+                {
+                  "Value": 5,
+                  "Description": "エンデュランス"
+                },
+                {
+                  "Value": 6,
+                  "Description": "パーソナリティ"
+                },
+                {
+                  "Value": 7,
+                  "Description": "ラック"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Description": "専門",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "戦闘"
+                },
+                {
+                  "Value": 1,
+                  "Description": "魔法"
+                },
+                {
+                  "Value": 2,
+                  "Description": "隠密"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2,
+                5
+              ],
+              "Description": "マイナー/メジャースキルを交互に5セット。"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "フラグ",
+              "Flags": [
+                {
+                  "Value": 1,
+                  "Description": "再生可能"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Description": "自動計算フラグ",
+              "Flags": [
+                {
+                  "ValueHex": "0x00001",
+                  "Description": "武器"
+                },
+                {
+                  "ValueHex": "0x00002",
+                  "Description": "防具"
+                },
+                {
+                  "ValueHex": "0x00004",
+                  "Description": "衣類"
+                },
+                {
+                  "ValueHex": "0x00008",
+                  "Description": "本"
+                },
+                {
+                  "ValueHex": "0x00010",
+                  "Description": "材料"
+                },
+                {
+                  "ValueHex": "0x00020",
+                  "Description": "ピック"
+                },
+                {
+                  "ValueHex": "0x00040",
+                  "Description": "プローブ"
+                },
+                {
+                  "ValueHex": "0x00080",
+                  "Description": "ライト"
+                },
+                {
+                  "ValueHex": "0x00100",
+                  "Description": "装置"
+                },
+                {
+                  "ValueHex": "0x00200",
+                  "Description": "リペアアイテム"
+                },
+                {
+                  "ValueHex": "0x00400",
+                  "Description": "魔法"
+                },
+                {
+                  "ValueHex": "0x00800",
+                  "Description": "スペル"
+                },
+                {
+                  "ValueHex": "0x01000",
+                  "Description": "マジックアイテム"
+                },
+                {
+                  "ValueHex": "0x02000",
+                  "Description": "ポーション"
+                },
+                {
+                  "ValueHex": "0x04000",
+                  "Description": "トレーニング"
+                },
+                {
+                  "ValueHex": "0x08000",
+                  "Description": "魔法作成"
+                },
+                {
+                  "ValueHex": "0x10000",
+                  "Description": "エンチャント"
+                },
+                {
+                  "ValueHex": "0x20000",
+                  "Description": "リペア"
+                }
+              ]
+            }
+          ],
+          "Description": "クラスデータ",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DESC",
+          "DataType": "string",
+          "Description": "説明",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        }
+      ]
+    },
+    {
+      "RecordName": "FACT",
+      "Description": "派閥",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "派閥名",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "RNAM",
+          "DataType": "zstring",
+          "Description": "ランク名。エントリは常に10個あるが必須ではない。",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FADT",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Attributes"
+            },
+            {
+              "DataType": "struct",
+              "Arrays": [
+                10
+              ],
+              "DataTypeStruct": [
+                {
+                  "DataType": "uint32",
+                  "Arrays": [
+                    2
+                  ],
+                  "Description": "Attribute modifiers"
+                },
+                {
+                  "DataType": "uint32",
+                  "Description": "Primary skill modifier"
+                },
+                {
+                  "DataType": "uint32",
+                  "Description": "Favored skill modifier"
+                },
+                {
+                  "DataType": "uint32",
+                  "Description": "Faction reaction modifier"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                7
+              ],
+              "Description": "Skills - use Skill values found on Skills, ignoring any value of -1."
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Flags",
+              "Flags": [
+                {
+                  "Value": 1,
+                  "Description": "Hidden from Player"
+                }
+              ]
+            }
+          ],
+          "Description": "Faction data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "ANAM",
+              "DataType": "string",
+              "Description": "Faction name string\nAn ANAM/INTV pair occurs for each faction with a reaction adjustment. Multiple entries with the same faction exist in some records, but only the first appears to be used by the game."
+            },
+            {
+              "FieldName": "INTV",
+              "DataType": "int32",
+              "Description": "Faction reaction value (normally -3 to +3; other values exist and are allowed in the CS, but reportedly may generate errors)"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "RACE",
+      "Description": "Race",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Race ID string",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Race name string",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "RADT",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "struct",
+              "Arrays": [
+                7
+              ],
+              "DataTypeStruct": [
+                {
+                  "DataType": "int32",
+                  "Description": "Skill ID (-1 for empty)"
+                },
+                {
+                  "DataType": "int32",
+                  "Description": "Bonus"
+                }
+              ],
+              "Description": "Skill bonuses"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Strength (for all fields until flags: first is male, second is female)"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Intelligence"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Willpower"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Agility"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Speed"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Endurance"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Personality"
+            },
+            {
+              "DataType": "uint32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Luck"
+            },
+            {
+              "DataType": "float32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Height"
+            },
+            {
+              "DataType": "float32",
+              "Arrays": [
+                2
+              ],
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Flags",
+              "Flags": [
+                {
+                  "ValueHex": "0x1",
+                  "Description": "Playable"
+                },
+                {
+                  "ValueHex": "0x2",
+                  "Description": "Beast Race"
+                }
+              ]
+            }
+          ],
+          "Description": "Race data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCS",
+          "DataType": "zstring",
+          "Description": "Special power/ability name string",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DESC",
+          "DataType": "string",
+          "Description": "Race description",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        }
+      ]
+    },
+    {
+      "RecordName": "SOUN",
+      "Description": "Sound",
+      "UniqueKeyFieldName": "NAME",
+      "IsShow": true,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Sound ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "File name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Description": "Volume (0=0.00, 255=1.00)"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Min Range"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Max Range"
+            }
+          ],
+          "Description": "Attenuation Data",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "SKIL",
+      "Description": "Skill",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "INDX",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "INDX",
+          "DataType": "uint32",
+          "Description": "Skill index",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "SKDT",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "Attribute"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Specialization"
+            },
+            {
+              "DataType": "float",
+              "Arrays": [
+                4
+              ],
+              "Description": "Use values"
+            }
+          ],
+          "Description": "Skill data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DESC",
+          "DataType": "string",
+          "Description": "Skill description",
+          "IsShow": true,
+          "IsEdit": true
+        }
+      ]
+    },
+    {
+      "RecordName": "MGEF",
+      "Description": "Magic Effect",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "INDX",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "INDX",
+          "DataType": "uint32",
+          "Description": "Index",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MEDT",
+          "DataType": "struct",
+          "DataSize": 36,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Alteration"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Conjuration"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Destruction"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Illusion"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Mysticism"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Restoration"
+                }
+              ],
+              "Description": "Spell school"
+            },
+            {
+              "DataType": "float32",
+              "Description": "BaseCost"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x0200",
+                  "Description": "Spellmaking"
+                },
+                {
+                  "ValueHex": "0x0400",
+                  "Description": "Enchanting"
+                },
+                {
+                  "ValueHex": "0x0800",
+                  "Description": "Negative"
+                }
+              ],
+              "Description": "Flags"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Red"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Green"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Blue"
+            },
+            {
+              "DataType": "float32",
+              "Description": "SpeedX"
+            },
+            {
+              "DataType": "float32",
+              "Description": "SizeX"
+            },
+            {
+              "DataType": "float32",
+              "Description": "SizeCap"
+            }
+          ],
+          "Description": "Magic effect data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Effect icon",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "PTEX",
+          "DataType": "zstring",
+          "Description": "Particle texture",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "BSND",
+          "DataType": "zstring",
+          "Description": "Bolt sound",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "CSND",
+          "DataType": "zstring",
+          "Description": "Casting sound",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "HSND",
+          "DataType": "zstring",
+          "Description": "Hit sound",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ASND",
+          "DataType": "zstring",
+          "Description": "Area sound",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "CVFX",
+          "DataType": "zstring",
+          "Description": "Casting visual (note that Casting visual comes before Bolt visual, unlike with sounds)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "BVFX",
+          "DataType": "zstring",
+          "Description": "Bolt visual",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "HVFX",
+          "DataType": "zstring",
+          "Description": "Hit visual",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "AVFX",
+          "DataType": "zstring",
+          "Description": "Area visual",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DESC",
+          "DataType": "zstring",
+          "Description": "Description text",
+          "IsShow": true,
+          "IsEdit": true
+        }
+      ]
+    },
+    {
+      "RecordName": "SCPT",
+      "Description": "Script",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "SCHD",
+      "UniqueKeyFieldSize": 32,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "SCHD",
+          "DataType": "struct",
+          "DataSize": 52,
+          "DataTypeStruct": [
+            {
+              "DataType": "char",
+              "Arrays": [
+                32
+              ],
+              "Description": "Name"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "NumShorts"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "NumLongs"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "NumFloats"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "ScriptDataSize (same as size of SCDT)"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "LocalVarSize (same as size of SCVR)"
+            }
+          ],
+          "Description": "Script header",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCVR",
+          "DataType": "zstring_ary",
+          "Arrays": 0,
+          "Description": "List of all the local script variables separated by NULL characters\n(varCount = NumShorts + NumLongs + NumFloats from SCHD)",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "SCDT",
+          "DataType": "uint8",
+          "Arrays": 0,
+          "Description": "The compiled script data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "SCTX",
+          "DataType": "string",
+          "Description": "Script text",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "REGN",
+      "Description": "Region",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Region ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Region name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "WEAT",
+          "DataType": "struct",
+          "DataSize": 0,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Description": "Clear"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Cloudy"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Foggy"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Overcast"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Rain"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Thunder"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Ash"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Blight"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Snow (v1.3 only)"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Blizzard (v1.3 only)"
+            }
+          ],
+          "Description": "Weather chances - 8 bytes in v1.2 (Morrowind), 10 bytes in v1.3 (Bloodmoon/Tribunal)",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "BNAM",
+          "DataType": "zstring_ary",
+          "Description": "Sleep creature",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "CNAM",
+          "DataType": "rgb",
+          "Description": "Map color",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "SNAM",
+          "DataType": "struct",
+          "DataSize": 33,
+          "DataTypeStruct": [
+            {
+              "DataType": "char",
+              "Arrays": [
+                32
+              ],
+              "Description": "Sound name"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Chance"
+            }
+          ],
+          "Description": "Sound chances",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "BSGN",
+      "Description": "Birthsign",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCS",
+          "DataType": "char",
+          "Arrays": [
+            32
+          ],
+          "Description": "SPEL - Spell ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "TNAM",
+          "DataType": "zstring",
+          "Description": "Texture file name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DESC",
+          "DataType": "zstring",
+          "Description": "Description",
+          "IsShow": true,
+          "IsEdit": true
+        }
+      ]
+    },
+    {
+      "RecordName": "LTEX",
+      "Description": "Land Texture",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "INTV",
+          "DataType": "uint32",
+          "Description": "Index (although nominally a uint32, uint16s are used as indices in LAND records, so these are effectively restricted to uint16 values)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "zstring",
+          "Description": "Texture file names",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "STAT",
+      "Description": "Static",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "DOOR",
+      "Description": "Door",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model file name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Door name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SNAM",
+          "DataType": "zstring",
+          "Description": "Sound name (open)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ANAM",
+          "DataType": "zstring",
+          "Description": "Sound name (close)",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "MISC",
+      "Description": "Misc. Item",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name of item",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MCDT",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Unknown (appears to be unused - only values of 0 and 1 are seen)"
+            }
+          ],
+          "Description": "Weapon Data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Inventory icon name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "WEAP",
+      "Description": "Weapon",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Weapon ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Weapon name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "WPDT",
+          "DataType": "struct",
+          "DataSize": 32,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint16",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "ShortBladeOneHand"
+                },
+                {
+                  "Value": 1,
+                  "Description": "LongBladeOneHand"
+                },
+                {
+                  "Value": 2,
+                  "Description": "LongBladeTwoClose"
+                },
+                {
+                  "Value": 3,
+                  "Description": "BluntOneHand"
+                },
+                {
+                  "Value": 4,
+                  "Description": "BluntTwoClose"
+                },
+                {
+                  "Value": 5,
+                  "Description": "BluntTwoWide"
+                },
+                {
+                  "Value": 6,
+                  "Description": "SpearTwoWide"
+                },
+                {
+                  "Value": 7,
+                  "Description": "AxeOneHand"
+                },
+                {
+                  "Value": 8,
+                  "Description": "AxeTwoHand"
+                },
+                {
+                  "Value": 9,
+                  "Description": "MarksmanBow"
+                },
+                {
+                  "Value": 10,
+                  "Description": "MarksmanCrossbow"
+                },
+                {
+                  "Value": 11,
+                  "Description": "MarksmanThrown"
+                },
+                {
+                  "Value": 12,
+                  "Description": "Arrow"
+                },
+                {
+                  "Value": 13,
+                  "Description": "Bolt"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "uint16",
+              "Description": "Health"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Speed"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Reach"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Chop Minimum"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Chop Maximum"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Slash Minimum"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Slash Maximum"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Thrust Minimum"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Thrust Maximum"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x1",
+                  "Description": "Ignore Normal Weapon Resistance"
+                },
+                {
+                  "ValueHex": "0x1",
+                  "Description": "Silver"
+                }
+              ],
+              "Description": "Flags"
+            }
+          ],
+          "Description": "Weapon data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "string",
+          "Description": "Inventory icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ENAM",
+          "DataType": "string",
+          "Description": "Enchantment ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "string",
+          "Description": "Script ID string",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "CONT",
+      "Description": "Container",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Container ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model file name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Container name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "CNDT",
+          "DataType": "float32",
+          "Description": "Weight",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FLAG",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x1",
+              "Description": "Organic"
+            },
+            {
+              "ValueHex": "0x1",
+              "Description": "Respawns (organic only)"
+            },
+            {
+              "ValueHex": "0x8",
+              "Description": "Unknown (always set)"
+            }
+          ],
+          "Description": "Flags",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCO",
+          "DataType": "struct",
+          "DataSize": 36,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "Object count"
+            },
+            {
+              "DataType": "char",
+              "Arrays": [
+                32
+              ],
+              "Description": "Object name"
+            }
+          ],
+          "Description": "Container object",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "SPEL",
+      "Description": "Spell",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "SPDT",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Spell"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Ability"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Blight"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Disease"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Curse (unused)"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Power"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "SpellCost"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Flags",
+              "Flags": [
+                {
+                  "ValueHex": "0x1",
+                  "Description": "AutoCalc"
+                },
+                {
+                  "ValueHex": "0x2",
+                  "Description": "PC Start"
+                },
+                {
+                  "ValueHex": "0x4",
+                  "Description": "Always Succeeds"
+                }
+              ]
+            }
+          ],
+          "Description": "Spell Data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "ENAM",
+          "DataType": "struct",
+          "DataSize": 24,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint16",
+              "Description": "Effect index"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Skill affected (-1 if not applicable)"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Attribute affected (-1 if not applicable)"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Range",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Self"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Touch"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Target"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Area"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Duration"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Magnitude Min"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Magnitude Max"
+            }
+          ],
+          "Description": "Enchantments",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "CREA",
+      "Description": "Creature",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "CNAM",
+          "DataType": "zstring",
+          "Description": "Sound Gen Creature",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NPDT",
+          "DataType": "struct",
+          "DataSize": 96,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Creature"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Daedra"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Undead"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Humanoid"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Level"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Strength"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Intelligence"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Willpower"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Agility"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Speed"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Endurance"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Personality"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Luck"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Health"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "SpellPts"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Fatigue"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Soul"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Combat"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Magic"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Stealth"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMin1"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMax1"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMin2"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMax2"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMin3"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "AttackMax3"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Gold"
+            }
+          ],
+          "Description": "Spell Data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FLAG",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x0001",
+              "Description": "Biped"
+            },
+            {
+              "ValueHex": "0x0002",
+              "Description": "Respawn"
+            },
+            {
+              "ValueHex": "0x0004",
+              "Description": "Weapon and shield"
+            },
+            {
+              "ValueHex": "0x0008",
+              "Description": "None"
+            },
+            {
+              "ValueHex": "0x0010",
+              "Description": "Swims"
+            },
+            {
+              "ValueHex": "0x0020",
+              "Description": "Flies"
+            },
+            {
+              "ValueHex": "0x0040",
+              "Description": "Walks"
+            },
+            {
+              "ValueHex": "0x0048",
+              "Description": "Default flags"
+            },
+            {
+              "ValueHex": "0x0080",
+              "Description": "Essential"
+            },
+            {
+              "ValueHex": "0x0400",
+              "Description": "Skeleton Blood"
+            },
+            {
+              "ValueHex": "0x0800",
+              "Description": "Metal Blood"
+            }
+          ],
+          "Description": "Creature flags",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "XSCL",
+          "DataType": "float32",
+          "Description": "Scale (1.0 if missing)",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCO",
+          "DataType": "struct",
+          "DataSize": 36,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "Object count"
+            },
+            {
+              "DataType": "char",
+              "Arrays": [
+                32
+              ],
+              "Description": "Object name"
+            }
+          ],
+          "Description": "Carried object",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCS",
+          "DataType": "char",
+          "Arrays": 32,
+          "Description": "Spells",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "AIDT",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Description": "Hello"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown1"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Fight"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Flee"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Alarm"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown2"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown3"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown4"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Flags",
+              "Flags": [
+                {
+                  "ValueHex": "0x00001",
+                  "Description": "Weapon"
+                },
+                {
+                  "ValueHex": "0x00002",
+                  "Description": "Armor"
+                },
+                {
+                  "ValueHex": "0x00004",
+                  "Description": "Clothing"
+                },
+                {
+                  "ValueHex": "0x00008",
+                  "Description": "Books"
+                },
+                {
+                  "ValueHex": "0x00010",
+                  "Description": "Ingredient"
+                },
+                {
+                  "ValueHex": "0x00020",
+                  "Description": "Picks"
+                },
+                {
+                  "ValueHex": "0x00040",
+                  "Description": "Probes"
+                },
+                {
+                  "ValueHex": "0x00080",
+                  "Description": "Lights"
+                },
+                {
+                  "ValueHex": "0x00100",
+                  "Description": "Apparatus"
+                },
+                {
+                  "ValueHex": "0x00200",
+                  "Description": "Repair Items"
+                },
+                {
+                  "ValueHex": "0x00400",
+                  "Description": "Misc"
+                },
+                {
+                  "ValueHex": "0x00800",
+                  "Description": "Spells"
+                },
+                {
+                  "ValueHex": "0x01000",
+                  "Description": "Magic Items"
+                },
+                {
+                  "ValueHex": "0x02000",
+                  "Description": "Potions"
+                },
+                {
+                  "ValueHex": "0x04000",
+                  "Description": "Training"
+                },
+                {
+                  "ValueHex": "0x08000",
+                  "Description": "Spellmaking"
+                },
+                {
+                  "ValueHex": "0x10000",
+                  "Description": "Enchanting"
+                },
+                {
+                  "ValueHex": "0x20000",
+                  "Description": "Repair"
+                }
+              ]
+            }
+          ],
+          "Description": "AI data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "DODT",
+              "DataType": "struct",
+              "DataSize": 24,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "Position X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Z"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Z"
+                }
+              ],
+              "Description": "Cell Travel Destination",
+              "IsShow": false,
+              "IsEdit": false
+            },
+            {
+              "FieldName": "DNAM",
+              "DataType": "zstring",
+              "Description": "Cell name for previous DODT, if interior",
+              "IsShow": false,
+              "IsEdit": false
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "AI_A",
+              "DataType": "struct",
+              "DataSize": 33,
+              "DataTypeStruct": [
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "Name"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                }
+              ],
+              "Description": "Activate package"
+            },
+            {
+              "FieldName": "AI_E",
+              "DataType": "struct",
+              "DataSize": 48,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "ID"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Escort package",
+              "SubFileds": [
+                {
+                  "FieldName": "CNDT",
+                  "DataType": "zstring",
+                  "Description": "Cell escort string (optional)"
+                }
+              ]
+            },
+            {
+              "FieldName": "AI_F",
+              "DataType": "struct",
+              "DataSize": 48,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "ID"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Follow package",
+              "SubFileds": [
+                {
+                  "FieldName": "CNDT",
+                  "DataType": "zstring",
+                  "Description": "Cell escort string (optional)"
+                }
+              ]
+            },
+            {
+              "FieldName": "AI_T",
+              "DataType": "struct",
+              "DataSize": 16,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    3
+                  ],
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Travel package"
+            },
+            {
+              "FieldName": "AI_W",
+              "DataType": "struct",
+              "DataSize": 14,
+              "DataTypeStruct": [
+                {
+                  "DataType": "uint16",
+                  "Description": "Distance"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Time of Day"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    8
+                  ],
+                  "Description": "Idles"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                }
+              ],
+              "Description": "Wander package"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "BODY",
+      "Description": "Body Parts",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model file name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Race",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "FieldName": "BYDT",
+          "DataType": "struct",
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Head"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Hair"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Neck"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Chest"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Groin"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Hand"
+                },
+                {
+                  "Value": 6,
+                  "Description": "Wrist"
+                },
+                {
+                  "Value": 7,
+                  "Description": "Forearm"
+                },
+                {
+                  "Value": 8,
+                  "Description": "Upperarm"
+                },
+                {
+                  "Value": 9,
+                  "Description": "Foot"
+                },
+                {
+                  "Value": 10,
+                  "Description": "Ankle"
+                },
+                {
+                  "Value": 11,
+                  "Description": "Knee"
+                },
+                {
+                  "Value": 12,
+                  "Description": "Upperleg"
+                },
+                {
+                  "Value": 13,
+                  "Description": "Clavicle"
+                },
+                {
+                  "Value": 14,
+                  "Description": "Tail"
+                }
+              ],
+              "Description": "Part"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Vampire"
+            },
+            {
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Female"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Playable"
+                }
+              ],
+              "Description": "Flags"
+            },
+            {
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Skin"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Clothing"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Armor"
+                }
+              ],
+              "Description": "PartType"
+            }
+          ],
+          "Description": "Body Part Data",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "LIGH",
+      "Description": "Light",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model file name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Light name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Inventory icon",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "LHDT",
+          "DataType": "struct",
+          "DataSize": 24,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Time"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Radius"
+            },
+            {
+              "DataType": "rgb",
+              "Description": "Color"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x0001",
+                  "Description": "Dynamic"
+                },
+                {
+                  "ValueHex": "0x0002",
+                  "Description": "Can carry"
+                },
+                {
+                  "ValueHex": "0x0004",
+                  "Description": "Negative"
+                },
+                {
+                  "ValueHex": "0x0008",
+                  "Description": "Flicker"
+                },
+                {
+                  "ValueHex": "0x0010",
+                  "Description": "Fire"
+                },
+                {
+                  "ValueHex": "0x0020",
+                  "Description": "Off by default"
+                },
+                {
+                  "ValueHex": "0x0040",
+                  "Description": "Flicker slow"
+                },
+                {
+                  "ValueHex": "0x0080",
+                  "Description": "Pulse"
+                },
+                {
+                  "ValueHex": "0x0100",
+                  "Description": "Pulse slow"
+                }
+              ],
+              "Description": "Flags"
+            }
+          ],
+          "Description": "Light data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SNAM",
+          "DataType": "zstring",
+          "Description": "Sound name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "ENCH",
+      "Description": "Enchantment",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "ENDT",
+          "DataType": "struct",
+          "DataSize": 16,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Cast Once"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Cast Strikes"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Cast when Used"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Constant Effect"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Enchantment Cost"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Charge"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x1",
+                  "Description": "Autocalc"
+                }
+              ],
+              "Description": "Flags"
+            }
+          ],
+          "Description": "Enchantment data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "ENAM",
+          "DataType": "struct",
+          "DataSize": 24,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint16",
+              "Description": "Effect index"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Skill affected (-1 if not applicable)"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Attribute affected (-1 if not applicable)"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Self"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Touch"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Target"
+                }
+              ],
+              "Description": "Range"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Area"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Duration"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Magnitude Min"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Magnitude Max"
+            }
+          ],
+          "Description": "Enchantments",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "NPC_",
+      "Description": "Non-Player Character",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID string",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "NIF model",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "RNAM",
+          "DataType": "zstring",
+          "Description": "Race name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "CNAM",
+          "DataType": "zstring",
+          "Description": "Class name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "ANAM",
+          "DataType": "zstring",
+          "Description": "Faction name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "BNAM",
+          "DataType": "zstring",
+          "Description": "Head model",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "KNAM",
+          "DataType": "zstring",
+          "Description": "Hair model",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NPDT",
+          "DataType": "struct",
+          "DataSize": 0,
+          "DataTypeStructs": [
+            {
+              "DataTypeStructSize": 12,
+              "DataTypeStruct": [
+                {
+                  "DataType": "uint16",
+                  "Description": "Level"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Disposition"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Reputation"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Rank"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    3
+                  ],
+                  "Description": "Unknown (values vary, likely junk data)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Gold"
+                }
+              ]
+            },
+            {
+              "DataTypeStructSize": 52,
+              "DataTypeStruct": [
+                {
+                  "DataType": "uint16",
+                  "Description": "Level"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Strength"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Intelligence"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Willpower"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Agility"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Speed"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Endurance"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Personality"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Luck"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    27
+                  ],
+                  "Description": "Skills (in order of Skill ID, as found on Morrowind:Skills)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 0, likely unused)"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Health"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Spell points"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Fatigue"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Disposition"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Reputation"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Rank"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 0, likely unused)"
+                },
+                {
+                  "DataType": "uint32",
+                  "Description": "Gold"
+                }
+              ]
+            }
+          ],
+          "Description": "NPC data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FLAG",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x0001",
+              "Description": "Female"
+            },
+            {
+              "ValueHex": "0x0002",
+              "Description": "Essential"
+            },
+            {
+              "ValueHex": "0x0004",
+              "Description": "Respawn"
+            },
+            {
+              "ValueHex": "0x0008",
+              "Description": "Unknown (always set)"
+            },
+            {
+              "ValueHex": "0x0010",
+              "Description": "Autocalc"
+            },
+            {
+              "ValueHex": "0x0400",
+              "Description": "Blood Texture: Skeleton"
+            },
+            {
+              "ValueHex": "0x0800",
+              "Description": "Blood Texture: Metal Sparks"
+            }
+          ],
+          "Description": "NPC flags",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCO",
+          "DataType": "struct",
+          "DataSize": 36,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "Object count"
+            },
+            {
+              "DataType": "char",
+              "Arrays": [
+                32
+              ],
+              "Description": "Object name"
+            }
+          ],
+          "Description": "Carried object",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "NPCS",
+          "DataType": "char",
+          "Arrays": 32,
+          "Description": "Spells",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "AIDT",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Description": "Hello"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown1"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Fight"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Flee"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Alarm"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown2"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown3"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unknown4"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Flags",
+              "Flags": [
+                {
+                  "ValueHex": "0x00001",
+                  "Description": "Weapon"
+                },
+                {
+                  "ValueHex": "0x00002",
+                  "Description": "Armor"
+                },
+                {
+                  "ValueHex": "0x00004",
+                  "Description": "Clothing"
+                },
+                {
+                  "ValueHex": "0x00008",
+                  "Description": "Books"
+                },
+                {
+                  "ValueHex": "0x00010",
+                  "Description": "Ingredient"
+                },
+                {
+                  "ValueHex": "0x00020",
+                  "Description": "Picks"
+                },
+                {
+                  "ValueHex": "0x00040",
+                  "Description": "Probes"
+                },
+                {
+                  "ValueHex": "0x00080",
+                  "Description": "Lights"
+                },
+                {
+                  "ValueHex": "0x00100",
+                  "Description": "Apparatus"
+                },
+                {
+                  "ValueHex": "0x00200",
+                  "Description": "Repair Items"
+                },
+                {
+                  "ValueHex": "0x00400",
+                  "Description": "Misc"
+                },
+                {
+                  "ValueHex": "0x00800",
+                  "Description": "Spells"
+                },
+                {
+                  "ValueHex": "0x01000",
+                  "Description": "Magic Items"
+                },
+                {
+                  "ValueHex": "0x02000",
+                  "Description": "Potions"
+                },
+                {
+                  "ValueHex": "0x04000",
+                  "Description": "Training"
+                },
+                {
+                  "ValueHex": "0x08000",
+                  "Description": "Spellmaking"
+                },
+                {
+                  "ValueHex": "0x10000",
+                  "Description": "Enchanting"
+                },
+                {
+                  "ValueHex": "0x20000",
+                  "Description": "Repair"
+                }
+              ]
+            }
+          ],
+          "Description": "AI data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "DODT",
+              "DataType": "struct",
+              "DataSize": 24,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "Position X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Z"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Z"
+                }
+              ],
+              "Description": "Cell Travel Destination"
+            },
+            {
+              "FieldName": "DNAM",
+              "DataType": "zstring",
+              "Description": "Cell name for previous DODT, if interior"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "AI_A",
+              "DataType": "struct",
+              "DataSize": 33,
+              "DataTypeStruct": [
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "Name"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                }
+              ],
+              "Description": "Activate package"
+            },
+            {
+              "FieldName": "AI_E",
+              "DataType": "struct",
+              "DataSize": 48,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "ID"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Escort package",
+              "SubFileds": [
+                {
+                  "FieldName": "CNDT",
+                  "DataType": "zstring",
+                  "Description": "Cell escort string (optional)"
+                }
+              ]
+            },
+            {
+              "FieldName": "AI_F",
+              "DataType": "struct",
+              "DataSize": 48,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    32
+                  ],
+                  "Description": "ID"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Follow package",
+              "SubFileds": [
+                {
+                  "FieldName": "CNDT",
+                  "DataType": "zstring",
+                  "Description": "Cell escort string (optional)"
+                }
+              ]
+            },
+            {
+              "FieldName": "AI_T",
+              "DataType": "struct",
+              "DataSize": 16,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Z"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    3
+                  ],
+                  "Description": "Unused"
+                }
+              ],
+              "Description": "Travel package"
+            },
+            {
+              "FieldName": "AI_W",
+              "DataType": "struct",
+              "DataSize": 14,
+              "DataTypeStruct": [
+                {
+                  "DataType": "uint16",
+                  "Description": "Distance"
+                },
+                {
+                  "DataType": "uint16",
+                  "Description": "Duration"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Time of Day"
+                },
+                {
+                  "DataType": "uint8",
+                  "Arrays": [
+                    8
+                  ],
+                  "Description": "Idles"
+                },
+                {
+                  "DataType": "uint8",
+                  "Description": "Unknown (always 1)"
+                }
+              ],
+              "Description": "Wander package"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "ARMO",
+      "Description": "Armor",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "AODT",
+          "DataType": "struct",
+          "DataSize": 24,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Helmet"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Cuirass"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Left Pauldron"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Right Pauldron"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Greaves"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Boots"
+                },
+                {
+                  "Value": 6,
+                  "Description": "Left Gauntlet"
+                },
+                {
+                  "Value": 7,
+                  "Description": "Right Gauntlet"
+                },
+                {
+                  "Value": 8,
+                  "Description": "Shield"
+                },
+                {
+                  "Value": 9,
+                  "Description": "Left Bracer"
+                },
+                {
+                  "Value": 10,
+                  "Description": "Right Bracer"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Health"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Enchantment Points"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Armor Rating"
+            }
+          ],
+          "Description": "Armor data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "INDX",
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Head"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Hair"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Neck"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Cuirass"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Groin"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Skirt"
+                },
+                {
+                  "Value": 6,
+                  "Description": "Right Hand"
+                },
+                {
+                  "Value": 7,
+                  "Description": "Left Hand"
+                },
+                {
+                  "Value": 8,
+                  "Description": "Right Wrist"
+                },
+                {
+                  "Value": 9,
+                  "Description": "Left Wrist"
+                },
+                {
+                  "Value": 10,
+                  "Description": "Shield"
+                },
+                {
+                  "Value": 11,
+                  "Description": "Right Forearm"
+                },
+                {
+                  "Value": 12,
+                  "Description": "Left Forearm"
+                },
+                {
+                  "Value": 13,
+                  "Description": "Right Upper Arm"
+                },
+                {
+                  "Value": 14,
+                  "Description": "Left Upper Arm"
+                },
+                {
+                  "Value": 15,
+                  "Description": "Right Foot"
+                },
+                {
+                  "Value": 16,
+                  "Description": "Left Foot"
+                },
+                {
+                  "Value": 17,
+                  "Description": "Right Ankle"
+                },
+                {
+                  "Value": 18,
+                  "Description": "Left Ankle"
+                },
+                {
+                  "Value": 19,
+                  "Description": "Right Knee"
+                },
+                {
+                  "Value": 20,
+                  "Description": "Left Knee"
+                },
+                {
+                  "Value": 21,
+                  "Description": "Right Upper Leg"
+                },
+                {
+                  "Value": 22,
+                  "Description": "Left Upper Leg"
+                },
+                {
+                  "Value": 23,
+                  "Description": "Right Pauldron"
+                },
+                {
+                  "Value": 24,
+                  "Description": "Left Pauldron"
+                },
+                {
+                  "Value": 25,
+                  "Description": "Weapon"
+                },
+                {
+                  "Value": 26,
+                  "Description": "Tail"
+                }
+              ],
+              "Description": "Biped object (Note: The only field size currently in use is a uint8, but the internal coding allows for a uint32 here, using only the lowest byte of it. This may be from an earlier file format that's no longer used.)"
+            },
+            {
+              "FieldName": "BNAM",
+              "DataType": "string",
+              "Description": "Male armor name (optional, but present in all base game files)"
+            },
+            {
+              "FieldName": "CNAM",
+              "DataType": "string",
+              "Description": "Female armor name (optional, male armor is used if not present)"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ENAM",
+          "DataType": "zstring",
+          "Description": "Enchantment name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "CLOT",
+      "Description": "Clothing",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "CTDT",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Pants"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Shoes"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Shirt"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Belt"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Robe"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Right Glove"
+                },
+                {
+                  "Value": 6,
+                  "Description": "Left Glove"
+                },
+                {
+                  "Value": 7,
+                  "Description": "Skirt"
+                },
+                {
+                  "Value": 8,
+                  "Description": "Ring"
+                },
+                {
+                  "Value": 9,
+                  "Description": "Amulet"
+                }
+              ],
+              "Description": "Type"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Enchantment Points"
+            }
+          ],
+          "Description": "Clothing data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "INDX",
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "Head"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Hair"
+                },
+                {
+                  "Value": 2,
+                  "Description": "Neck"
+                },
+                {
+                  "Value": 3,
+                  "Description": "Cuirass"
+                },
+                {
+                  "Value": 4,
+                  "Description": "Groin"
+                },
+                {
+                  "Value": 5,
+                  "Description": "Skirt"
+                },
+                {
+                  "Value": 6,
+                  "Description": "Right Hand"
+                },
+                {
+                  "Value": 7,
+                  "Description": "Left Hand"
+                },
+                {
+                  "Value": 8,
+                  "Description": "Right Wrist"
+                },
+                {
+                  "Value": 9,
+                  "Description": "Left Wrist"
+                },
+                {
+                  "Value": 10,
+                  "Description": "Shield"
+                },
+                {
+                  "Value": 11,
+                  "Description": "Right Forearm"
+                },
+                {
+                  "Value": 12,
+                  "Description": "Left Forearm"
+                },
+                {
+                  "Value": 13,
+                  "Description": "Right Upper Arm"
+                },
+                {
+                  "Value": 14,
+                  "Description": "Left Upper Arm"
+                },
+                {
+                  "Value": 15,
+                  "Description": "Right Foot"
+                },
+                {
+                  "Value": 16,
+                  "Description": "Left Foot"
+                },
+                {
+                  "Value": 17,
+                  "Description": "Right Ankle"
+                },
+                {
+                  "Value": 18,
+                  "Description": "Left Ankle"
+                },
+                {
+                  "Value": 19,
+                  "Description": "Right Knee"
+                },
+                {
+                  "Value": 20,
+                  "Description": "Left Knee"
+                },
+                {
+                  "Value": 21,
+                  "Description": "Right Upper Leg"
+                },
+                {
+                  "Value": 22,
+                  "Description": "Left Upper Leg"
+                },
+                {
+                  "Value": 23,
+                  "Description": "Right Pauldron"
+                },
+                {
+                  "Value": 24,
+                  "Description": "Left Pauldron"
+                },
+                {
+                  "Value": 25,
+                  "Description": "Weapon"
+                },
+                {
+                  "Value": 26,
+                  "Description": "Tail"
+                }
+              ],
+              "Description": "Biped object (Note: The only field size currently in use is a uint8, but the internal coding allows for a uint32 here, using only the lowest byte of it. This may be from an earlier file format that's no longer used.)"
+            },
+            {
+              "FieldName": "BNAM",
+              "DataType": "string",
+              "Description": "Male armor name (optional, but present in all base game files)"
+            },
+            {
+              "FieldName": "CNAM",
+              "DataType": "string",
+              "Description": "Female armor name (optional, male armor is used if not present)"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ENAM",
+          "DataType": "zstring",
+          "Description": "Enchantment name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "REPA",
+      "Description": "Repair Items",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "RIDT",
+          "DataType": "struct",
+          "DataSize": 16,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Uses"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Quality"
+            }
+          ],
+          "Description": "Repair Item data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "ACTI",
+      "Description": "アクティベーター",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "モデル名",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "名称",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "スクリプト名",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "APPA",
+      "Description": "錬金術器具",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "モデル名",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "名称",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "スクリプト名",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "AADT",
+          "DataType": "struct",
+          "DataSize": 16,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "タイプ",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "乳鉢と乳棒"
+                },
+                {
+                  "Value": 1,
+                  "Description": "アレンビック（炉過器）"
+                },
+                {
+                  "Value": 2,
+                  "Description": "カルシネーター（か焼器）"
+                },
+                {
+                  "Value": 3,
+                  "Description": "レトルト（蒸留器）"
+                }
+              ]
+            },
+            {
+              "DataType": "float32",
+              "Description": "品質"
+            },
+            {
+              "DataType": "float32",
+              "Description": "重量"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "値"
+            }
+          ],
+          "Description": "錬金術機器データ",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "アイコンファイル名",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "LOCK",
+      "Description": "Lockpicking Items",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "LKDT",
+          "DataType": "struct",
+          "DataSize": 16,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Quality"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Uses"
+            }
+          ],
+          "Description": "Lock data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "PROB",
+      "Description": "Probe Items",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "PBDT",
+          "DataType": "struct",
+          "DataSize": 16,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "float32",
+              "Description": "Quality"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Uses"
+            }
+          ],
+          "Description": "Lock data",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "INGR",
+      "Description": "Ingredient",
+      "IsShow": true,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "IRDT",
+          "DataType": "struct",
+          "DataSize": 56,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "int32",
+              "Arrays": [
+                4
+              ],
+              "Description": "Effect index (-1 if unused)"
+            },
+            {
+              "DataType": "int32",
+              "Arrays": [
+                4
+              ],
+              "Description": "Skill ID (only if effect supports it; otherwise 0 or -1)"
+            },
+            {
+              "DataType": "int32",
+              "Arrays": [
+                4
+              ],
+              "Description": "Attribute ID (only if effect supports it; otherwise 0 or -1)"
+            }
+          ],
+          "Description": "Ingredient data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "BOOK",
+      "Description": "Book",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "Model name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Name",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "BKDT",
+          "DataType": "struct",
+          "DataSize": 20,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "Weight"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x1",
+                  "Description": "Scroll"
+                }
+              ],
+              "Description": "Value"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Skill ID (for skill books; otherwise -1)"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Enchantment points"
+            }
+          ],
+          "Description": "Book data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SCRI",
+          "DataType": "zstring",
+          "Description": "Script name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ITEX",
+          "DataType": "zstring",
+          "Description": "Icon filename",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "TEXT",
+          "DataType": "string",
+          "Description": "Text of the book",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ENAM",
+          "DataType": "zstring",
+          "Description": "Enchantment name (i.e., scroll spell)",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "ALCH",
+      "Description": "ポーション",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "MODL",
+          "DataType": "zstring",
+          "Description": "モデル名",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "TEXT",
+          "DataType": "zstring",
+          "Description": "本のテキスト",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "名称",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "ALDT",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "重量"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "値"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "フラグ",
+              "Flags": [
+                {
+                  "Value": 1,
+                  "Description": "自動計算"
+                }
+              ]
+            }
+          ],
+          "Description": "錬金術データ",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "FieldName": "ENAM",
+          "DataType": "struct",
+          "DataSize": 24,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint16",
+              "Description": "エフェクトインデックス"
+            },
+            {
+              "DataType": "int8",
+              "Description": "影響を受けるスキル（該当しない場合は-1）"
+            },
+            {
+              "DataType": "int8",
+              "Description": "影響を受ける属性（該当しない場合は-1）"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "範囲",
+              "Flags": [
+                {
+                  "Value": 0,
+                  "Description": "自分"
+                },
+                {
+                  "Value": 1,
+                  "Description": "接触"
+                },
+                {
+                  "Value": 2,
+                  "Description": "ターゲット"
+                }
+              ]
+            },
+            {
+              "DataType": "uint32",
+              "Description": "エリア"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "期限"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "マグニチュード 最小"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "マグニチュード 最大"
+            }
+          ],
+          "Description": "エンチャント",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "LEVI",
+      "Description": "Leveled Item",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x1",
+              "Description": "Calculate from all levels <= PC's level"
+            },
+            {
+              "ValueHex": "0x2",
+              "Description": "Calculate for each item in count"
+            }
+          ],
+          "Description": "Flags",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NNAM",
+          "DataType": "uint8",
+          "Description": "Chance none",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "INDX",
+          "DataType": "uint32",
+          "Description": "Count of following items",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "INAM",
+              "DataType": "zstring",
+              "Description": "Item name"
+            },
+            {
+              "FieldName": "INTV",
+              "DataType": "uint16",
+              "Description": "PC level"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "LEVC",
+      "Description": "Leveled Creature",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x1",
+              "Description": "Calculate from all levels <= PC's level"
+            }
+          ],
+          "Description": "Flags",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NNAM",
+          "DataType": "uint8",
+          "Description": "Chance none",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "INDX",
+          "DataType": "uint32",
+          "Description": "Count of following creatures",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "CNAM",
+              "DataType": "zstring",
+              "Description": "Creature name"
+            },
+            {
+              "FieldName": "INTV",
+              "DataType": "uint16",
+              "Description": "PC level"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "CELL",
+      "Description": "Cell",
+      "IsShow": true,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Cell Name. Unlike other NAME fields, this is the localized, human-readable name of the cell, not a language-agnostic ID string. Exterior regions are mostly empty strings; for these, the region name is used in the Construction Set.",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Flags": [
+                {
+                  "ValueHex": "0x01",
+                  "Description": "Interior"
+                },
+                {
+                  "ValueHex": "0x02",
+                  "Description": "Has Water"
+                },
+                {
+                  "ValueHex": "0x04",
+                  "Description": "Illegal to Sleep here"
+                },
+                {
+                  "ValueHex": "0x80",
+                  "Description": "Behave like exterior (Tribunal)"
+                }
+              ],
+              "Description": "Flags"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Grid X"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Grid Y"
+            }
+          ],
+          "Description": "",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "RGNN",
+          "DataType": "zstring",
+          "Description": "Region name (exterior and like-exterior only)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "NAM5",
+          "DataType": "rgb",
+          "Description": "Map color (exterior and like-exterior only)",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "WHGT",
+          "DataType": "float32",
+          "Description": "Water height (interior only)",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "AMBI",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "rgb",
+              "Description": "Ambient color"
+            },
+            {
+              "DataType": "rgb",
+              "Description": "Sunlight color"
+            },
+            {
+              "DataType": "rgb",
+              "Description": "Fog color"
+            },
+            {
+              "DataType": "float",
+              "Description": "Fog density"
+            }
+          ],
+          "Description": "Ambient light",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "ReferenceName": "Moved Reference",
+          "Description": "Moved references",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "ReferenceName": "Form Reference",
+          "Description": "Persistent Children",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "NAM0",
+          "DataType": "uint32",
+          "Description": "Count of Temporary Children (Note: conceivably, this might not match the actual number of objects.)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Repeating",
+          "ReferenceName": "Form Reference",
+          "Description": "Temporary Children",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ],
+      "References": [
+        {
+          "ReferenceName": "Moved Reference",
+          "Description": "These only appear in mod files when creatures or NPCs are moved from one cell to another; they commonly appear in saved game files as things move around.",
+          "Fields": [
+            {
+              "CountType": "Required",
+              "FieldName": "MVRF",
+              "DataType": "uint32",
+              "Description": "Reference ID (always the same as the attached FRMR value)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "CNAM",
+              "DataType": "zstring",
+              "Description": "Name of the cell the reference was moved to (interior cells only)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "CNDT",
+              "DataType": "struct",
+              "DataSize": 8,
+              "DataTypeStruct": [
+                {
+                  "DataType": "int",
+                  "Description": "Grid X"
+                },
+                {
+                  "DataType": "int",
+                  "Description": "Grid Y"
+                }
+              ],
+              "Description": "Coordinates of the cell the reference was moved to (exterior cells only)"
+            },
+            {
+              "CountType": "Required",
+              "ReferenceName": "Form Reference",
+              "Description": "Reference to the form that was moved"
+            }
+          ]
+        },
+        {
+          "ReferenceName": "Form Reference",
+          "Description": "These only appear in mod files when creatures or NPCs are moved from one cell to another; they commonly appear in saved game files as things move around.",
+          "Fields": [
+            {
+              "CountType": "Required",
+              "FieldName": "FRMR",
+              "DataType": "uint32",
+              "Description": "Reference ID"
+            },
+            {
+              "CountType": "Required",
+              "FieldName": "NAME",
+              "DataType": "zstring",
+              "Description": "Object ID or \"PlayerSaveGame\""
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "UNAM",
+              "DataType": "uint8",
+              "Description": "Reference blocked (value is always 0; present if Blocked is set in the reference's record header, otherwise absent)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "XSCL",
+              "DataType": "float32",
+              "Description": "Reference's scale, if applicable and not 1.0"
+            },
+            {
+              "CountType": "Optional",
+              "GroupFields": [
+                {
+                  "FieldName": "ANAM",
+                  "DataType": "zstring",
+                  "Description": "NPC ID, if applicable (NPC-only)"
+                },
+                {
+                  "FieldName": "BNAM",
+                  "DataType": "zstring",
+                  "Description": "Global variable name"
+                }
+              ]
+            },
+            {
+              "CountType": "Optional",
+              "GroupFields": [
+                {
+                  "FieldName": "CNAM",
+                  "DataType": "zstring",
+                  "Description": "Faction ID (not light, NPC, or static)"
+                },
+                {
+                  "FieldName": "INDX",
+                  "DataType": "uint32",
+                  "Description": "Faction rank"
+                }
+              ]
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "XSOL",
+              "DataType": "zstring",
+              "Description": "ID of soul in gem (soul gems only)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "XCHG",
+              "DataType": "float32",
+              "Description": "Enchantment charge (charged items with non-zero charges)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "INTV",
+              "DataType": "uint32orfloat32",
+              "Description": "Remaining usage\nuint32 - health remaining (weapons and armor)\nuint32 - uses remaining (locks, probes, repair items)\nfloat32 - time remaining (lights)"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "NAM9",
+              "DataType": "uint32",
+              "Description": "Value"
+            },
+            {
+              "CountType": "Repeating",
+              "GroupFields": [
+                {
+                  "FieldName": "DODT",
+                  "DataType": "struct",
+                  "DataSize": 24,
+                  "DataTypeStruct": [
+                    {
+                      "DataType": "float32",
+                      "Description": "Position X"
+                    },
+                    {
+                      "DataType": "float32",
+                      "Description": "Position Y"
+                    },
+                    {
+                      "DataType": "float32",
+                      "Description": "Position Z"
+                    },
+                    {
+                      "DataType": "float32",
+                      "Description": "Rotation X"
+                    },
+                    {
+                      "DataType": "float32",
+                      "Description": "Rotation Y"
+                    },
+                    {
+                      "DataType": "float32",
+                      "Description": "Rotation Z"
+                    }
+                  ],
+                  "Description": "Cell Travel Destination"
+                },
+                {
+                  "FieldName": "DNAM",
+                  "DataType": "zstring",
+                  "Description": "Cell name for previous DODT, if interior"
+                }
+              ]
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "FLTV",
+              "DataType": "uint32",
+              "Description": "Lock difficulty"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "KNAM",
+              "DataType": "zstring",
+              "Description": "Key name"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "TNAM",
+              "DataType": "zstring",
+              "Description": "Trap name"
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "ZNAM",
+              "DataType": "uint8",
+              "Description": "Reference is disabled (always 0). Like UNAM, this will be emitted if the relevant flag is set in the reference's record header. This may only be possible via scripting. Also, even if present in the file, the field appears to be ignored on loading."
+            },
+            {
+              "CountType": "Optional",
+              "FieldName": "DATA",
+              "DataType": "struct",
+              "DataSize": 24,
+              "DataTypeStruct": [
+                {
+                  "DataType": "float32",
+                  "Description": "Position X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Position Z"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation X"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Y"
+                },
+                {
+                  "DataType": "float32",
+                  "Description": "Rotation Z"
+                }
+              ],
+              "Description": "Reference position"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "RecordName": "LAND",
+      "Description": "Land",
+      "IsShow": false,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "INTV",
+          "DataType": "struct",
+          "DataSize": 8,
+          "DataTypeStruct": [
+            {
+              "DataType": "int32",
+              "Description": "X"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Y"
+            }
+          ],
+          "Description": "Coordinates",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "ValueHex": "0x01",
+              "Description": "Includes VNML, VHGT and WNAM"
+            },
+            {
+              "ValueHex": "0x02",
+              "Description": "Includes VCLR"
+            },
+            {
+              "ValueHex": "0x04",
+              "Description": "Includes VTEX"
+            }
+          ],
+          "Description": "Data types included. If the relevant bit isn't set, the related fields will not be loaded, even if present.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "VNML",
+          "DataType": "struct",
+          "DataSize": 12675,
+          "DataTypeStruct": [
+            {
+              "DataType": "int8",
+              "Description": "X"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Y"
+            },
+            {
+              "DataType": "int8",
+              "Description": "Z"
+            }
+          ],
+          "Description": "Vertex Normals. A 65×65 array of:\nNote that the Y-direction of the data is from the bottom up.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "VHGT",
+          "DataType": "struct",
+          "DataSize": 4232,
+          "DataTypeStruct": [
+            {
+              "DataType": "float32",
+              "Description": "A height offset for the entire cell. Decreasing this value will shift the entire cell land down (by 8 units).[verification needed — Oblivion and Skyrim use 8 units, is this the same?]"
+            },
+            {
+              "DataType": "int8",
+              "Arrays": [
+                65,
+                65
+              ],
+              "Description": "Contains the height data for the cell in the form of a 65×65 pixel array. The height data is not absolute values but uses differences between adjacent pixels. Thus a pixel value of 0 means it has the same height as the last pixel. Note that the Y-direction of the data is from the bottom up."
+            },
+            {
+              "DataType": "int8",
+              "Arrays": [
+                3
+              ],
+              "Description": "Junk data (ignored)"
+            }
+          ],
+          "Description": "Height Data",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "WNAM",
+          "DataType": "uint8",
+          "Arrays": [
+            9,
+            9
+          ],
+          "Description": "Heights for world map. Derived from VHGT data.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "VCLR",
+          "DataType": "struct",
+          "DataSize": 12675,
+          "Description": "Vertex Colors. A 65×65 array of RGB (no alpha) values.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "VTEX",
+          "DataType": "uint16",
+          "Arrays": [
+            16,
+            16
+          ],
+          "Description": "Texture Indices. Each value corresponds to the Index (INTV) value from a LTEX record.",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "PGRD",
+      "Description": "Path grid",
+      "IsShow": true,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint32",
+              "Description": "Grid X (exterior only)"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Grid Y (exterior only)"
+            },
+            {
+              "DataType": "uint16",
+              "Description": "Unknown (flags?)"
+            },
+            {
+              "DataType": "uint16",
+              "Description": "Path point count (see PGRP)"
+            }
+          ],
+          "Description": "Note: the Construction Set allows for a 44-byte version of the structure where NAME is a 32-byte null-terminated string immediately after Grid Y, rather than a field of its own. Only the 12-byte version is currently in use; the 44-byte version appears to be an older version.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "The cell name the path grid belongs to.",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "PGRP",
+          "DataType": "PathPoint",
+          "DataTypeStruct": [
+            {
+              "DataType": "int32",
+              "Description": "X"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Y"
+            },
+            {
+              "DataType": "int32",
+              "Description": "Z"
+            },
+            {
+              "DataType": "uint8 ",
+              "Flags": [
+                {
+                  "ValueHex": "0x01",
+                  "Description": "Autogenerated"
+                }
+              ],
+              "Description": "Flags"
+            },
+            {
+              "DataType": "uint8 ",
+              "Description": "Connection count (number of entries in PGRC)"
+            },
+            {
+              "DataType": "uint8 ",
+              "Description": "Unknown"
+            }
+          ],
+          "Description": "A sequential list of PathPoints:",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "PGRC",
+          "DataType": "uint32_ary",
+          "Description": "Connection list (also known as edges), where TotalConnCount is the sum of all Connection count values in the PGRP node.\nFor each path point listed in PGRP, there are Connection count edges in this list, each an index into PGRP. Using Azura's Coast (12, 20) as an example, the first entry in the PGRP (index 0) the Connection count value is 1, so you would read one uint32 from this list. That has a value of 1, so index 0 connects to index 1. For the second entry (index = 1), Connection count is 4, so you would read the next four uint32 values: 0, 6, 3, and 2, meaning that the point at index 1 connects to the points at indices 0, 6, 3, and 2.",
+          "IsShow": false,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "SNDG",
+      "Description": "Sound Generator",
+      "IsShow": true,
+      "IsEdit": false,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID - this appears to be generated from the creature name (or DEFAULT) combined with the type formatted as a four-digit number with leading zeroes (e.g., the ID for an alit scream is alit0006).\nNote: there is one record in Bloodmoon which has an empty string here (BM_horker, Left Foot).",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "uint32",
+          "Flags": [
+            {
+              "Value": 0,
+              "Description": "Left Foot"
+            },
+            {
+              "Value": 1,
+              "Description": "Right Foot"
+            },
+            {
+              "Value": 2,
+              "Description": "Swim Left"
+            },
+            {
+              "Value": 3,
+              "Description": "Swim Right"
+            },
+            {
+              "Value": 4,
+              "Description": "Moan"
+            },
+            {
+              "Value": 5,
+              "Description": "Roar"
+            },
+            {
+              "Value": 6,
+              "Description": "Scream"
+            },
+            {
+              "Value": 7,
+              "Description": "Land"
+            }
+          ],
+          "Description": "Sound type data",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "CNAM",
+          "DataType": "zstring",
+          "Description": "Creature name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SNAM",
+          "DataType": "zstring",
+          "Description": "Sound ID string",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "DIAL",
+      "Description": "Dialog Topic",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "NAME",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "uint8",
+          "Flags": [
+            {
+              "Value": 0,
+              "Description": "Regular Topic"
+            },
+            {
+              "Value": 1,
+              "Description": "Voice"
+            },
+            {
+              "Value": 2,
+              "Description": "Greeting"
+            },
+            {
+              "Value": 3,
+              "Description": "Persuasion"
+            },
+            {
+              "Value": 4,
+              "Description": "Journal"
+            }
+          ],
+          "Description": "Dialogue type",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "INFO",
+      "Description": "Dialog response",
+      "IsShow": true,
+      "IsEdit": true,
+      "UniqueKeyFieldName": "INAM",
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "INAM",
+          "DataType": "zstring",
+          "Description": "Info name string (unique sequence of #'s), ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "PNAM",
+          "DataType": "zstring",
+          "Description": "Previous info ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "NNAM",
+          "DataType": "zstring",
+          "Description": "Next info ID",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "struct",
+          "DataSize": 12,
+          "DataTypeStruct": [
+            {
+              "DataType": "uint8",
+              "Description": "Dialogue type (duplicates parent DIAL's DATA value)"
+            },
+            {
+              "DataType": "uint8",
+              "Arrays": [
+                3
+              ],
+              "Description": "Unused"
+            },
+            {
+              "DataType": "uint32",
+              "Description": "Disposition / Journal index"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Rank"
+            },
+            {
+              "DataType": "uint8",
+              "Flags": [
+                {
+                  "Value": -1,
+                  "Description": "None"
+                },
+                {
+                  "Value": 0,
+                  "Description": "Male"
+                },
+                {
+                  "Value": 1,
+                  "Description": "Female"
+                }
+              ],
+              "Description": "Gender"
+            },
+            {
+              "DataType": "uint8",
+              "Description": "Unused"
+            }
+          ],
+          "Description": "Info data (always emitted except for deleted records)\nNote: a 20-byte version is also allowed in the Construction Set, but does not appear in any game files. It is likely an older version. The data appeared in the same order, but all values were int32/uint32.",
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ONAM",
+          "DataType": "zstring",
+          "Description": "Actor",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "RNAM",
+          "DataType": "zstring",
+          "Description": "Race",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "CNAM",
+          "DataType": "zstring",
+          "Description": "Class",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "FNAM",
+          "DataType": "zstring",
+          "Description": "Faction (or the literal string \"FFFF\" for _NO FACTION_)",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "ANAM",
+          "DataType": "zstring",
+          "Description": "Cell",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "DNAM",
+          "DataType": "zstring",
+          "Description": "PC Faction",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "SNAM",
+          "DataType": "zstring",
+          "Description": "Sound",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "NAME",
+          "DataType": "zstring",
+          "Description": "Response text",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Repeating",
+          "GroupFields": [
+            {
+              "FieldName": "SCVR",
+              "DataType": "struct",
+              "DataTypeStruct": [
+                {
+                  "DataType": "char",
+                  "Description": "Index ('0' to '5')"
+                },
+                {
+                  "DataType": "char",
+                  "Flags": [
+                    {
+                      "ValueChar": "1",
+                      "Description": "Function"
+                    },
+                    {
+                      "ValueChar": "2",
+                      "Description": "Global"
+                    },
+                    {
+                      "ValueChar": "3",
+                      "Description": "Local"
+                    },
+                    {
+                      "ValueChar": "4",
+                      "Description": "Journal"
+                    },
+                    {
+                      "ValueChar": "5",
+                      "Description": "Item"
+                    },
+                    {
+                      "ValueChar": "6",
+                      "Description": "Dead"
+                    },
+                    {
+                      "ValueChar": "7",
+                      "Description": "Not ID"
+                    },
+                    {
+                      "ValueChar": "8",
+                      "Description": "Not Faction"
+                    },
+                    {
+                      "ValueChar": "9",
+                      "Description": "Not Class"
+                    },
+                    {
+                      "ValueChar": "A",
+                      "Description": "Not Race"
+                    },
+                    {
+                      "ValueChar": "B",
+                      "Description": "Not Cell"
+                    },
+                    {
+                      "ValueChar": "C",
+                      "Description": "Not Local"
+                    }
+                  ],
+                  "Description": "Type ('1' to 'C', hex digit)"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays": [
+                    2
+                  ],
+                  "Flags": [
+                    {
+                      "ValueChar": "00",
+                      "Description": "Function: function index"
+                    },
+                    {
+                      "ValueChar": "fX",
+                      "Description": "Global/Local/Not Local: Value is a float in FLTV"
+                    },
+                    {
+                      "ValueChar": "lX",
+                      "Description": "Global/Local/Not Local: Value is a long in INTV"
+                    },
+                    {
+                      "ValueChar": "sX",
+                      "Description": "Global/Local/Not Local: Value is a short in INTV (serves only as a value range - INTV is always a uint32)"
+                    },
+                    {
+                      "ValueChar": "JX",
+                      "Description": "Journal"
+                    },
+                    {
+                      "ValueChar": "IX",
+                      "Description": "Item"
+                    },
+                    {
+                      "ValueChar": "DX",
+                      "Description": "Dead"
+                    },
+                    {
+                      "ValueChar": "XX",
+                      "Description": "Not ID"
+                    },
+                    {
+                      "ValueChar": "FX",
+                      "Description": "Not Faction"
+                    },
+                    {
+                      "ValueChar": "CX",
+                      "Description": "Not Class"
+                    },
+                    {
+                      "ValueChar": "RX",
+                      "Description": "Not Race"
+                    },
+                    {
+                      "ValueChar": "LX",
+                      "Description": "Not Cell"
+                    }
+                  ],
+                  "Description": "Details"
+                },
+                {
+                  "DataType": "char",
+                  "Flags": [
+                    {
+                      "ValueChar": "0",
+                      "Description": "="
+                    },
+                    {
+                      "ValueChar": "1",
+                      "Description": "!="
+                    },
+                    {
+                      "ValueChar": "2",
+                      "Description": ">"
+                    },
+                    {
+                      "ValueChar": "3",
+                      "Description": ">="
+                    },
+                    {
+                      "ValueChar": "4",
+                      "Description": "<"
+                    },
+                    {
+                      "ValueChar": "5",
+                      "Description": "<="
+                    }
+                  ],
+                  "Description": "Operator"
+                },
+                {
+                  "DataType": "char",
+                  "Arrays:": [
+                    0
+                  ],
+                  "Description": "Name: Except for functions (which require no further information), everything after the fifth character is the ID for the global, local, journal, etc."
+                }
+              ],
+              "Description": "Strings for the Function/Variable list"
+            },
+            {
+              "FieldName": "INTV",
+              "DataType": "uint32",
+              "Description": "Integer value for SCVR comparison"
+            },
+            {
+              "FieldName": "FLTV",
+              "DataType": "float32",
+              "Description": "Float value for SCVR comparison"
+            }
+          ],
+          "IsShow": false,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "BNAM",
+          "DataType": "zstring",
+          "Description": "Result text",
+          "IsShow": true,
+          "IsEdit": true
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "QSTN",
+          "DataType": "bool8",
+          "Description": "Quest Name",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "QSTF",
+          "DataType": "bool8",
+          "Description": "Quest Finished",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "QSTR",
+          "DataType": "bool8",
+          "Description": "Quest Restart",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    },
+    {
+      "RecordName": "SSCR",
+      "Description": "Start Script",
+      "IsShow": true,
+      "IsEdit": false,
+      "Fields": [
+        {
+          "CountType": "Required",
+          "FieldName": "DATA",
+          "DataType": "string",
+          "Description": "Unknown - series of ASCII digits",
+          "IsShow": true,
+          "IsEdit": false
+        },
+        {
+          "CountType": "Optional",
+          "FieldName": "NAME",
+          "DataType": "string",
+          "Description": "Script name (technically optional, but internal conditions seem like they should always be satisfied)",
+          "IsShow": true,
+          "IsEdit": false
+        }
+      ]
+    }
+  ]
+}
