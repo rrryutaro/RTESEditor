@@ -23,11 +23,16 @@ class RecordInfo:
         self.records.append(record)
 
     def find(self, search_text: str, encoding: TesEncoding | None = None) -> bool:
-        return any(
-            r.find(search_text)
+        terms = search_text.split()
+        if not terms:
+            return True
+
+        records = [
+            r
             for r in self.records
             if not r.mod_file or r.mod_file.is_search_target
-        )
+        ]
+        return all(any(r.find(term, encoding) for r in records) for term in terms)
 
     def write(self, buffer: bytearray, mod_file) -> None:
         for record in self.records:

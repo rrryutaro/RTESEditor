@@ -9,7 +9,7 @@ from ui.theme import apply_theme
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("RTESEditor")
-    app.setApplicationVersion("0.1.0")
+    app.setApplicationVersion("0.1.1")
 
     settings = Settings.instance()
     apply_theme(app, settings.get_theme())

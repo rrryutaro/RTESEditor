@@ -1,6 +1,7 @@
 from __future__ import annotations
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QPalette
 from app.record_info import RecordInfo
 
 
@@ -28,18 +29,17 @@ class ConflictGrid(QTableWidget):
 
         record_type = info.records[0].record_type if info.records else ""
         fmt         = manager.format_loader.get_record(record_type)
-        key_field   = fmt.unique_key_field if fmt else ""
 
-        # RecordGrid の可視列と同期（一意キーは行ヘッダとして使用済みのため除外）
+        # RecordGrid の可視列と同期する。先頭列はファイル名用に追加する。
         rec_grid = self._main.record_grid
         field_fmts = [
             ff for i, ff in enumerate(rec_grid._field_fmts)
-            if not rec_grid.isColumnHidden(i) and ff.field_name != key_field
+            if not rec_grid.isColumnHidden(i)
         ]
         if not field_fmts:
-            field_fmts = [f for f in (fmt.fields if fmt else []) if f.field_name != key_field]
+            field_fmts = list(fmt.fields if fmt else [])
 
-        headers = [f.field_name for f in field_fmts]
+        headers = [self.tr("ファイル名")] + [f.field_name for f in field_fmts]
         self.setColumnCount(len(headers))
         self.setHorizontalHeaderLabels(headers)
         self.setRowCount(len(info.records))
@@ -47,20 +47,27 @@ class ConflictGrid(QTableWidget):
         for row_idx, record in enumerate(info.records):
             mod_name = record.mod_file.file_name if record.mod_file else ""
             rec_enc  = record.mod_file.encoding if record.mod_file else TesEncoding.CP1252
-            self.setVerticalHeaderItem(row_idx, QTableWidgetItem(mod_name))
+            name_item = QTableWidgetItem(mod_name)
+            name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)
+            name_item.setBackground(QBrush(self.palette().color(QPalette.Button)))
+            name_item.setForeground(QBrush(self.palette().color(QPalette.ButtonText)))
+            name_item.setData(Qt.UserRole + 1, record)  # 所属 Record
+            self.setItem(row_idx, 0, name_item)
             for col_idx, ff in enumerate(field_fmts):
                 field = record.fields_map.get(ff.field_name)
                 text  = field.to_display_str(rec_enc) if field else ""
                 item  = QTableWidgetItem(text)
                 item.setData(Qt.UserRole,     field)   # Field オブジェクト
                 item.setData(Qt.UserRole + 1, record)  # 所属 Record
-                self.setItem(row_idx, col_idx, item)
+                self.setItem(row_idx, col_idx + 1, item)
 
         self.resizeColumnsToContents()
         self.blockSignals(False)
 
     def _on_current_changed(self, current, _previous) -> None:
         if current is None:
+            return
+        if current.column() == 0:
             return
         field  = current.data(Qt.UserRole)
         record = current.data(Qt.UserRole + 1)

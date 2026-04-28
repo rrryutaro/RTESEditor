@@ -18,7 +18,7 @@ MIN_W, MIN_H = 300, 140
 
 # ─── バージョン定義箇所（ツール名 → (ファイル名, 行番号)）───────────────────
 VERSION_HINTS: dict[str, tuple[str, int]] = {
-    "RTESEditor": ("main.py", 1),
+    "RTESEditor": ("main.py", 12),
 }
 
 # ─── エントリポイントオーバーライド ─────────────────────────────────────
@@ -73,6 +73,9 @@ def _read_version(tool_dir: str, tool_name: str) -> str | None:
             if m:
                 return m.group(1)
             m = re.match(r'\s*VERSION\s*=\s*["\']([^"\']+)["\']', lines[line_no - 1])
+            if m:
+                return m.group(1)
+            m = re.match(r'\s*app\.setApplicationVersion\(["\']([^"\']+)["\']\)', lines[line_no - 1])
             if m:
                 return m.group(1)
     except Exception:

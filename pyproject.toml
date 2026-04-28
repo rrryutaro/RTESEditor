@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "RTESEditor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Unified plugin editor for The Elder Scrolls series"
 requires-python = ">=3.11"
 dependencies = [

@@ -62,10 +62,16 @@ class LoadDialog(QDialog):
         btn_row = QHBoxLayout()
         add_btn = QPushButton(self.tr("ファイルを追加"))
         del_btn = QPushButton(self.tr("削除"))
+        up_btn = QPushButton(self.tr("上へ"))
+        down_btn = QPushButton(self.tr("下へ"))
         add_btn.clicked.connect(self._on_add)
         del_btn.clicked.connect(self._on_delete)
+        up_btn.clicked.connect(lambda: self._move_current_row(-1))
+        down_btn.clicked.connect(lambda: self._move_current_row(1))
         btn_row.addWidget(add_btn)
         btn_row.addWidget(del_btn)
+        btn_row.addWidget(up_btn)
+        btn_row.addWidget(down_btn)
         btn_row.addStretch()
         layout.addLayout(btn_row)
 
@@ -89,7 +95,18 @@ class LoadDialog(QDialog):
     def _add_row(self, path: Path, enc: TesEncoding | None = None,
                  is_overwrite: bool = False, is_save: bool = False,
                  is_search_target: bool = True) -> None:
-        row = self._table.rowCount()
+        self._insert_row(
+            self._table.rowCount(),
+            path,
+            enc,
+            is_overwrite,
+            is_save,
+            is_search_target,
+        )
+
+    def _insert_row(self, row: int, path: Path, enc: TesEncoding | None = None,
+                    is_overwrite: bool = False, is_save: bool = False,
+                    is_search_target: bool = True) -> None:
         self._table.insertRow(row)
 
         name_item = QTableWidgetItem(path.name)
@@ -143,6 +160,23 @@ class LoadDialog(QDialog):
         row = self._table.currentRow()
         if row >= 0:
             self._table.removeRow(row)
+
+    def _move_current_row(self, direction: int) -> None:
+        row = self._table.currentRow()
+        target = row + direction
+        if row < 0 or target < 0 or target >= self._table.rowCount():
+            return
+
+        path = self._table.item(row, self._COL_NAME).data(Qt.UserRole)
+        enc = self._table.cellWidget(row, self._COL_ENC).currentData()
+        is_overwrite = self._table.cellWidget(row, self._COL_OVER).isChecked()
+        is_save = self._table.cellWidget(row, self._COL_SAVE).isChecked()
+        is_search_target = self._table.cellWidget(row, self._COL_SEARCH).isChecked()
+
+        self._table.removeRow(row)
+        self._insert_row(target, path, enc, is_overwrite, is_save, is_search_target)
+        self._table.selectRow(target)
+        self._table.setCurrentCell(target, self._COL_NAME)
 
     def _on_accept(self) -> None:
         from app.settings import Settings
