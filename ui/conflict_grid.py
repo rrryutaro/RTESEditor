@@ -15,7 +15,9 @@ class ConflictGrid(QTableWidget):
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.currentItemChanged.connect(self._on_current_changed)
 
-    def load(self, info: RecordInfo | None) -> None:
+    def load(self, info: RecordInfo | None, field_fmts: list | None = None) -> None:
+        """info を複数Mod間で比較表示する。
+        field_fmts を指定するとRecordGridの可視列ではなくその列定義を使う（DialoguePanel用）。"""
         self.blockSignals(True)
         self.clear()
         self.setRowCount(0)
@@ -30,14 +32,15 @@ class ConflictGrid(QTableWidget):
         record_type = info.records[0].record_type if info.records else ""
         fmt         = manager.format_loader.get_record(record_type)
 
-        # RecordGrid の可視列と同期する。先頭列はファイル名用に追加する。
-        rec_grid = self._main.record_grid
-        field_fmts = [
-            ff for i, ff in enumerate(rec_grid._field_fmts)
-            if not rec_grid.isColumnHidden(i)
-        ]
-        if not field_fmts:
-            field_fmts = list(fmt.fields if fmt else [])
+        if field_fmts is None:
+            # RecordGrid の可視列と同期する。先頭列はファイル名用に追加する。
+            rec_grid = self._main.record_grid
+            field_fmts = [
+                ff for i, ff in enumerate(rec_grid._field_fmts)
+                if not rec_grid.isColumnHidden(i)
+            ]
+            if not field_fmts:
+                field_fmts = list(fmt.fields if fmt else [])
 
         headers = [self.tr("ファイル名")] + [f.field_name for f in field_fmts]
         self.setColumnCount(len(headers))

@@ -4,12 +4,13 @@ from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
 from ui.main_window import MainWindow
 from app.settings import Settings
 from ui.theme import apply_theme
+from version import version_string
 
 
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("RTESEditor")
-    app.setApplicationVersion("0.1.1")
+    app.setApplicationVersion(version_string())
 
     settings = Settings.instance()
     apply_theme(app, settings.get_theme())
@@ -27,7 +28,6 @@ def main():
         app.installTranslator(translator)
 
     window = MainWindow()
-    window.resize(1200, 800)
     window.show()
     sys.exit(app.exec())
 

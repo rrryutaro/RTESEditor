@@ -1,12 +1,15 @@
 from __future__ import annotations
+import logging
 from pathlib import Path
 from core.file_reader import BinaryFileReader
 from core.encoding import TesEncoding
 from tes3.field import Field
-from tes3.record import Record
+from tes3.record import Record, Tes3RecordGroup
 from tes3.mod_file import ModFile
 from tes3.format.format_loader import FormatLoader
 from core.bytes_util import TesBytes
+
+_log = logging.getLogger(__name__)
 
 
 class Tes3Reader:
@@ -26,9 +29,30 @@ class Tes3Reader:
         mod = ModFile(path, encoding, is_overwrite, is_save)
         reader = BinaryFileReader(path)
 
+        current_dial_group: Tes3RecordGroup | None = None
+
         while not reader.eof:
             record = self._read_record(reader, mod)
             if record:
+                if record.record_type == "DIAL":
+                    # NAMEフィールドからラベルを直接取得（mod_file未設定のためエンコーディング指定）
+                    name_field = record.fields_map.get("NAME")
+                    label = name_field.data.to_str(encoding) if name_field else ""
+                    current_dial_group = Tes3RecordGroup(
+                        group_type=7,
+                        label=label,
+                        parent_record=record,
+                        is_synthetic=True,
+                    )
+                    record.children_group = current_dial_group
+                elif record.record_type == "INFO":
+                    if current_dial_group is not None:
+                        current_dial_group.records.append(record)
+                        record.parent_group = current_dial_group
+                    else:
+                        _log.warning("Orphan INFO record: no preceding DIAL in %s", path)
+                else:
+                    current_dial_group = None
                 mod.add_record(record)
             if on_progress:
                 on_progress(reader.position, reader.length)

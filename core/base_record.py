@@ -23,6 +23,23 @@ class BaseField(ABC):
     def write(self, buffer: bytearray) -> None: ...
 
 
+class BaseRecordGroup(ABC):
+    """GRUP相当。TES4+では実GRUP、TES3ではReader段階で仮想合成される。"""
+
+    def __init__(
+        self,
+        group_type: int,
+        label: str,
+        parent_record: "BaseRecord | None" = None,
+        is_synthetic: bool = False,
+    ):
+        self.group_type = group_type
+        self.label = label
+        self.parent_record = parent_record
+        self.records: list["BaseRecord"] = []
+        self.is_synthetic = is_synthetic
+
+
 class BaseRecord(ABC):
     """レコード基底クラス"""
 
@@ -31,6 +48,8 @@ class BaseRecord(ABC):
         self.flags: int = 0
         self.fields: list[BaseField] = []
         self.fields_map: dict[str, BaseField] = {}
+        self.parent_group: "BaseRecordGroup | None" = None
+        self.children_group: "BaseRecordGroup | None" = None
 
     def add_field(self, field: BaseField) -> None:
         self.fields.append(field)

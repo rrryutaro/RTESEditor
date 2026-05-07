@@ -1,9 +1,16 @@
 from __future__ import annotations
 import struct
 from core.bytes_util import TesBytes
-from core.base_record import BaseRecord
+from core.base_record import BaseRecord, BaseRecordGroup
 from core.encoding import TesEncoding
 from tes3.field import Field
+
+
+class Tes3RecordGroup(BaseRecordGroup):
+    """TES3用仮想Groupクラス。Reader段階でDIAL→INFO親子関係を合成する。
+    group_type=7 (Topic Children), is_synthetic=True で運用する。
+    書き込み時はis_synthetic=Trueのため展開せずフラットに書き出す。"""
+    pass
 
 
 class Record(BaseRecord):
