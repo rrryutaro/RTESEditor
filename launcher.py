@@ -7,6 +7,7 @@ Launcher — RTESEditor 管理ランチャー
 """
 
 import tkinter as tk
+import importlib.util
 import json, os, sys, glob, subprocess, ctypes, ctypes.wintypes, re
 
 # ─── ウィンドウスタイル定数 ──────────────────────────────────────────
@@ -60,6 +61,26 @@ def _is_on_any_monitor(x: int, y: int, w: int = 1, h: int = 1) -> bool:
 
 
 def _read_version(tool_dir: str, tool_name: str) -> str | None:
+    # version.py をツールフォルダ → BASE_DIR の順で探してimportlib で読む
+    for search_dir in [tool_dir, BASE_DIR]:
+        path = os.path.join(search_dir, "version.py")
+        if not os.path.isfile(path):
+            continue
+        try:
+            spec = importlib.util.spec_from_file_location("_ver_tmp", path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            ver = getattr(mod, "__version__", None)
+            if not isinstance(ver, str):
+                continue
+            build = getattr(mod, "__build__", None)
+            dev   = getattr(mod, "__dev__", False)
+            if dev and build is not None:
+                return f"{ver}+b{build}"
+            return ver
+        except Exception:
+            continue
+    # フォールバック: 行番号指定の旧方式
     hint = VERSION_HINTS.get(tool_name)
     if not hint:
         return None
@@ -69,12 +90,6 @@ def _read_version(tool_dir: str, tool_name: str) -> str | None:
         with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
         if len(lines) >= line_no:
-            m = re.match(r'\s*["\']version["\']\s*:\s*["\']([^"\']+)["\']', lines[line_no - 1])
-            if m:
-                return m.group(1)
-            m = re.match(r'\s*VERSION\s*=\s*["\']([^"\']+)["\']', lines[line_no - 1])
-            if m:
-                return m.group(1)
             m = re.match(r'\s*app\.setApplicationVersion\(["\']([^"\']+)["\']\)', lines[line_no - 1])
             if m:
                 return m.group(1)

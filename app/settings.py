@@ -99,3 +99,33 @@ class Settings:
     def set_last_files(self, entries: list[dict]) -> None:
         self._data["last_files"] = entries
         self.save()
+
+    # --- ウィンドウ位置・サイズ ---
+
+    def get_geometry(self) -> str:
+        """QMainWindow.saveGeometry() を base64 エンコードした文字列。未設定時は空文字。"""
+        return self._data.get("geometry", "")
+
+    def set_geometry(self, encoded: str) -> None:
+        self._data["geometry"] = encoded
+        self.save()
+
+    # --- スプリッター状態 ---
+
+    def get_splitter_state(self, key: str) -> str:
+        """QSplitter.saveState() を base64 エンコードした文字列。未設定時は空文字。"""
+        return self._data.get("splitter_states", {}).get(key, "")
+
+    def set_splitter_state(self, key: str, encoded: str) -> None:
+        self._data.setdefault("splitter_states", {})[key] = encoded
+        self.save()
+
+    # --- ダイアログタブ INFOテーブル カラム表示設定 ---
+
+    def get_info_table_columns(self) -> list[int] | None:
+        """None = 設定なし（全列表示）。リストは表示する列インデックス。"""
+        return self._data.get("info_table_columns")
+
+    def set_info_table_columns(self, visible_indices: list[int]) -> None:
+        self._data["info_table_columns"] = visible_indices
+        self.save()

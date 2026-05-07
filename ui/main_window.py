@@ -2,14 +2,15 @@ from __future__ import annotations
 from PySide6.QtWidgets import (
     QMainWindow, QSplitter, QTabWidget, QWidget,
     QVBoxLayout, QHBoxLayout, QLineEdit, QStatusBar,
-    QMenuBar, QMenu, QLabel,
+    QMenuBar, QMenu, QLabel, QProgressBar, QApplication,
 )
-from PySide6.QtCore import Qt, QCoreApplication
+from PySide6.QtCore import Qt, QCoreApplication, QByteArray
 from app.mod_manager import ModManager
 from ui.tree_panel import TreePanel
 from ui.record_grid import RecordGrid
 from ui.conflict_grid import ConflictGrid
 from ui.text_panel import TextPanel
+from ui.dialogue_panel import DialoguePanel
 
 
 class MainWindow(QMainWindow):
@@ -22,6 +23,7 @@ class MainWindow(QMainWindow):
         self._setup_shortcuts()
         self.setWindowTitle("RTESEditor")
         self._restore_font()
+        self._restore_geometry()
 
     # ------------------------------------------------------------------
     # UI構築
@@ -33,54 +35,69 @@ class MainWindow(QMainWindow):
         root = QVBoxLayout(central)
         root.setContentsMargins(4, 4, 4, 4)
 
-        # 検索バー
+        # タブ（共通 / ダイアログ）をルートに配置
+        self._tabs = QTabWidget()
+        root.addWidget(self._tabs)
+
+        # ----------------------------------------------------------------
+        # 共通タブ
+        # ----------------------------------------------------------------
+        common_widget = QWidget()
+        common_layout = QVBoxLayout(common_widget)
+        common_layout.setContentsMargins(4, 4, 4, 4)
+
+        # 検索バー（共通タブ内）
         search_bar = QHBoxLayout()
         search_bar.addWidget(QLabel(self.tr("検索:")))
         self._search_box = QLineEdit()
         self._search_box.setPlaceholderText(self.tr("Ctrl+F"))
         self._search_box.returnPressed.connect(self._on_search)
         search_bar.addWidget(self._search_box)
-        root.addLayout(search_bar)
+        common_layout.addLayout(search_bar)
 
-        # メインスプリッター（ツリー | タブ）
-        splitter = QSplitter(Qt.Horizontal)
-        root.addWidget(splitter)
+        # 横スプリッター（ツリー | レコード領域）
+        self._common_h_splitter = QSplitter(Qt.Horizontal)
 
         self._tree = TreePanel(self)
-        splitter.addWidget(self._tree)
-        splitter.setStretchFactor(0, 1)
+        self._common_h_splitter.addWidget(self._tree)
+        self._common_h_splitter.setStretchFactor(0, 1)
 
-        # タブ（Common / Dialogue）
-        self._tabs = QTabWidget()
-        splitter.addWidget(self._tabs)
-        splitter.setStretchFactor(1, 4)
-
-        # --- Common タブ ---
-        common_widget = QWidget()
-        common_layout = QVBoxLayout(common_widget)
-        common_layout.setContentsMargins(0, 0, 0, 0)
-        v_splitter = QSplitter(Qt.Vertical)
-        self._record_grid  = RecordGrid(self)
+        # 縦スプリッター（RecordGrid / ConflictGrid / TextPanel）
+        self._common_v_splitter = QSplitter(Qt.Vertical)
+        self._record_grid   = RecordGrid(self)
         self._conflict_grid = ConflictGrid(self)
-        self._text_panel   = TextPanel(self)
-        v_splitter.addWidget(self._record_grid)
-        v_splitter.addWidget(self._conflict_grid)
-        v_splitter.addWidget(self._text_panel)
-        v_splitter.setStretchFactor(0, 5)
-        v_splitter.setStretchFactor(1, 3)
-        v_splitter.setStretchFactor(2, 2)
-        common_layout.addWidget(v_splitter)
+        self._text_panel    = TextPanel(self)
+        self._common_v_splitter.addWidget(self._record_grid)
+        self._common_v_splitter.addWidget(self._conflict_grid)
+        self._common_v_splitter.addWidget(self._text_panel)
+        self._common_v_splitter.setStretchFactor(0, 5)
+        self._common_v_splitter.setStretchFactor(1, 3)
+        self._common_v_splitter.setStretchFactor(2, 2)
+
+        self._common_h_splitter.addWidget(self._common_v_splitter)
+        self._common_h_splitter.setStretchFactor(1, 4)
+
+        common_layout.addWidget(self._common_h_splitter, 1)
         self._tabs.addTab(common_widget, self.tr("共通"))
 
-        self._dialogue_panel = None  # TODO: DIAL/INFO実装後に追加
+        # ----------------------------------------------------------------
+        # ダイアログタブ
+        # ----------------------------------------------------------------
+        self._dialogue_panel = DialoguePanel(self)
+        self._tabs.addTab(self._dialogue_panel, self.tr("ダイアログ"))
 
         self._tabs.currentChanged.connect(self._on_tab_changed)
 
         # ステータスバー
         self._status_record = QLabel()
         self._status_count  = QLabel()
+        self._progress_bar  = QProgressBar()
+        self._progress_bar.setFixedHeight(16)
+        self._progress_bar.setMaximumWidth(300)
+        self._progress_bar.setVisible(False)
         status_bar = QStatusBar()
         status_bar.addWidget(self._status_record)
+        status_bar.addWidget(self._progress_bar, 1)
         status_bar.addPermanentWidget(self._status_count)
         ver = QCoreApplication.applicationVersion()
         if ver:
@@ -112,7 +129,6 @@ class MainWindow(QMainWindow):
         self._topmost_action.setCheckable(True)
         self._topmost_action.toggled.connect(self._on_topmost_toggled)
 
-
     def _setup_shortcuts(self) -> None:
         from PySide6.QtGui import QShortcut, QKeySequence
         QShortcut(QKeySequence("Ctrl+F"), self, self._search_box.setFocus)
@@ -143,6 +159,10 @@ class MainWindow(QMainWindow):
         return self._text_panel
 
     @property
+    def dialogue_panel(self) -> DialoguePanel:
+        return self._dialogue_panel
+
+    @property
     def search_text(self) -> str:
         return self._search_box.text()
 
@@ -153,16 +173,46 @@ class MainWindow(QMainWindow):
     def _on_open(self) -> None:
         from ui.dialogs.load_dialog import LoadDialog
         dlg = LoadDialog(self)
-        if dlg.exec():
-            self._manager.clear()
-            self._tree.clear()
-            for entry in dlg.selected_entries:
-                self._manager.load_mod(
-                    entry.path, entry.encoding,
-                    entry.is_overwrite, entry.is_save,
-                    entry.is_search_target,
-                )
-            self._tree.build(self._manager.all_records, self._manager.format_loader)
+        if not dlg.exec():
+            return
+        entries = dlg.selected_entries
+        if not entries:
+            return
+
+        self._manager.clear()
+        self._tree.clear()
+
+        total = len(entries)
+        self._progress_bar.setValue(0)
+        self._progress_bar.setVisible(True)
+
+        for i, entry in enumerate(entries):
+            label = entry.path.name
+            self._progress_bar.setFormat(
+                f"{label}  ({i + 1}/{total})  %p%"
+            )
+            last_pct = [-1]
+
+            def _make_cb(bar, pct_state):
+                def _cb(pos, length):
+                    if length <= 0:
+                        return
+                    pct = int(pos * 100 / length)
+                    if pct != pct_state[0]:
+                        pct_state[0] = pct
+                        bar.setValue(pct)
+                        QApplication.processEvents()
+                return _cb
+
+            self._manager.load_mod(
+                entry.path, entry.encoding,
+                entry.is_overwrite, entry.is_save,
+                entry.is_search_target,
+                on_progress=_make_cb(self._progress_bar, last_pct),
+            )
+
+        self._progress_bar.setVisible(False)
+        self._tree.build(self._manager.all_records, self._manager.format_loader)
 
     def _on_save(self) -> None:
         from PySide6.QtWidgets import QMessageBox
@@ -209,10 +259,8 @@ class MainWindow(QMainWindow):
         if not all_modified:
             QMessageBox.information(self, self.tr("情報"), self.tr("修正済みのレコードがありません。"))
             return
-        # ファイルダイアログの初期パスは is_save な Mod のパスを優先
         save_mods = [m for m in self._manager.mod_files if m.is_save]
         default_path = str(save_mods[0].path) if save_mods else ""
-        # ヘッダ書き出しに使う Mod（is_save 優先、なければ最初の Mod）
         header_mod = save_mods[0] if save_mods else self._manager.mod_files[0]
         path, _ = QFileDialog.getSaveFileName(
             self, self.tr("修正箇所のみ書き出し"),
@@ -274,7 +322,6 @@ class MainWindow(QMainWindow):
         self._record_grid.refresh()
         QMessageBox.information(self, self.tr("インポート完了"), f"{count} 件を更新しました。")
 
-
     def _on_font_setting(self) -> None:
         from PySide6.QtWidgets import QFontDialog
         from PySide6.QtGui import QFont
@@ -301,6 +348,7 @@ class MainWindow(QMainWindow):
         self._record_grid.setFont(font)
         self._conflict_grid.setFont(font)
         self._text_panel.setFont(font)
+        self._dialogue_panel.setFont(font)
 
     def _on_topmost_toggled(self, checked: bool) -> None:
         flags = self.windowFlags()
@@ -319,7 +367,8 @@ class MainWindow(QMainWindow):
         apply_theme(QApplication.instance(), theme)
 
     def _on_tab_changed(self, index: int) -> None:
-        pass  # 将来ダイアログタブ追加時に実装
+        if self._tabs.widget(index) is self._dialogue_panel:
+            self._dialogue_panel.refresh()
 
     def _on_search(self) -> None:
         self._record_grid.refresh()
@@ -327,3 +376,35 @@ class MainWindow(QMainWindow):
     def set_status(self, record_name: str, count: int) -> None:
         self._status_record.setText(f"{record_name}:")
         self._status_count.setText(str(count))
+
+    # ------------------------------------------------------------------
+    # ウィンドウ位置・サイズ・スプリッターの保存と復元
+    # ------------------------------------------------------------------
+
+    def _restore_geometry(self) -> None:
+        from app.settings import Settings
+        s = Settings.instance()
+        encoded = s.get_geometry()
+        if encoded:
+            self.restoreGeometry(QByteArray.fromBase64(encoded.encode("ascii")))
+        else:
+            self.resize(1200, 800)
+        # スプリッター状態復元
+        for key, splitter in [
+            ("common_h", self._common_h_splitter),
+            ("common_v", self._common_v_splitter),
+        ]:
+            enc = s.get_splitter_state(key)
+            if enc:
+                splitter.restoreState(QByteArray.fromBase64(enc.encode("ascii")))
+
+    def closeEvent(self, event) -> None:
+        from app.settings import Settings
+        s = Settings.instance()
+        s.set_geometry(self.saveGeometry().toBase64().data().decode("ascii"))
+        s.set_splitter_state("common_h",
+            self._common_h_splitter.saveState().toBase64().data().decode("ascii"))
+        s.set_splitter_state("common_v",
+            self._common_v_splitter.saveState().toBase64().data().decode("ascii"))
+        self._dialogue_panel.save_splitter_states()
+        super().closeEvent(event)

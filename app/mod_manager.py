@@ -39,6 +39,7 @@ class ModManager:
     def _integrate(self, mod: ModFile) -> None:
         for record in mod.records:
             self.all_records.add_record(record)
+        self.all_records.build_dialogue_index()
 
     def clear(self) -> None:
         self.mod_files.clear()

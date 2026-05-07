@@ -85,12 +85,26 @@ class RecordGrid(QTableWidget):
             self.item(row_idx, 0).setData(Qt.UserRole + 1, info)
 
         self.resizeColumnsToContents()
+        self._clamp_column_widths()
         self._apply_column_visibility()
         self.blockSignals(False)
         self._main.set_status(self._record_type, len(rows))
 
         self._main.conflict_grid.load(None)
         self._main.text_panel.set_text("")
+
+    # ------------------------------------------------------------------
+    # 列幅クランプ
+    # ------------------------------------------------------------------
+
+    def _clamp_column_widths(self) -> None:
+        """各カラム幅をビューポート幅以下にクランプする。"""
+        max_w = self.viewport().width()
+        if max_w <= 0:
+            return
+        for i in range(self.columnCount()):
+            if self.columnWidth(i) > max_w:
+                self.setColumnWidth(i, max_w)
 
     # ------------------------------------------------------------------
     # 列表示設定
@@ -161,6 +175,14 @@ class RecordGrid(QTableWidget):
         if not first_item:
             return
         info = first_item.data(Qt.UserRole + 1)
+
+        # DIAL レコードはエイリアス（ローカライズ名）を含む全バージョンを統合して表示する
+        # （tes3jp 等でローカライズ DIAL が異なるキーで登録される場合の英語名参照用）
+        if self._record_type == "DIAL" and info is not None:
+            merged = self._main.manager.all_records.get_dial_record_info_with_aliases(info.key)
+            if merged is not None:
+                info = merged
+
         self._main.conflict_grid.load(info)
 
         # 現在のセルが編集不可なら最初の可視・編集可能列へ自動移動
@@ -204,4 +226,11 @@ class RecordGrid(QTableWidget):
         if row >= 0:
             fi = self.item(row, 0)
             if fi:
-                self._main.conflict_grid.load(fi.data(Qt.UserRole + 1))
+                info = fi.data(Qt.UserRole + 1)
+                if self._record_type == "DIAL" and info is not None:
+                    merged = self._main.manager.all_records.get_dial_record_info_with_aliases(
+                        info.key
+                    )
+                    if merged is not None:
+                        info = merged
+                self._main.conflict_grid.load(info)
