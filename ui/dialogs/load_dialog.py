@@ -85,7 +85,7 @@ class LoadDialog(QDialog):
         last_folder = Settings.instance().get_last_folder()
         paths, _ = QFileDialog.getOpenFileNames(
             self, self.tr("Modファイルを選択"), last_folder,
-            self.tr("TES3 Mod Files (*.esp *.esm);;All Files (*)")
+            self.tr("TES3/OpenMW Files (*.esp *.esm *.omwsave *.ess);;All Files (*)")
         )
         if paths:
             Settings.instance().set_last_folder(str(Path(paths[0]).parent))

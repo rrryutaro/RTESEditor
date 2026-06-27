@@ -1,4 +1,5 @@
 from __future__ import annotations
+import struct
 from core.encoding import TesEncoding
 from tes3.record import Record
 
@@ -46,16 +47,19 @@ class AllRecordInfos:
     def __init__(self):
         # record_type -> {key -> RecordInfo}
         self._data: dict[str, dict[str, RecordInfo]] = {}
+        self._records_in_load_order: list[Record] = []
         # ダイアログ用インデックス（build_dialogue_index()で構築）
         self._info_to_dial: dict[str, str] = {}           # INFO INAM -> 親DIAL NAME(正規)
         self._dial_to_infos: dict[str, list[str]] = {}    # DIAL NAME(正規) -> 子INFO INAMリスト
         self._npc_to_infos: dict[str, list[str]] = {}     # NPC ID(小文字) -> INFO INAMリスト
         self._dial_canonical: dict[str, str] = {}         # 旧DIAL NAME -> 正規DIAL NAME
+        self._npc_name_to_infos: dict[str, list[RecordInfo]] = {}
         # NPC静的属性インデックス（build_dialogue_index()で構築）
         # npc_id(小文字) -> {rnam, cnam, faction, is_female}
         self._npc_attrs: dict[str, dict] = {}
 
     def add_record(self, record: Record) -> None:
+        self._records_in_load_order.append(record)
         rtype = record.record_type
         key   = record.primary_key
         if rtype not in self._data:
@@ -73,10 +77,35 @@ class AllRecordInfos:
     def get_info_list(self, record_type: str) -> list[RecordInfo]:
         return list(self._data.get(record_type, {}).values())
 
+    def find_record_info(self, record_type: str, key: str) -> RecordInfo | None:
+        """レコードIDから最終ロード状態の RecordInfo を探す。"""
+        value = key.strip()
+        if not value:
+            return None
+        records = self._data.get(record_type, {})
+        target = value.casefold()
+        candidates = [
+            info
+            for existing_key, info in records.items()
+            if existing_key.strip().casefold() == target
+        ]
+        if not candidates:
+            return None
+        if len(candidates) == 1:
+            return candidates[0]
+
+        load_order = {id(record): index for index, record in enumerate(self._records_in_load_order)}
+
+        def latest_index(info: RecordInfo) -> int:
+            return max((load_order.get(id(record), -1) for record in info.records), default=-1)
+
+        return max(candidates, key=latest_index)
+
     def contains_key(self, record_type: str, key: str) -> bool:
         return key in self._data.get(record_type, {})
 
     def delete_record(self, record: Record) -> None:
+        self._records_in_load_order = [r for r in self._records_in_load_order if r is not record]
         rtype = record.record_type
         key   = record.primary_key
         if rtype in self._data and key in self._data[rtype]:
@@ -103,6 +132,7 @@ class AllRecordInfos:
         self._dial_to_infos = {}
         self._npc_to_infos = {}
         self._dial_canonical = {}
+        self._npc_name_to_infos = {}
         self._npc_attrs = {}
         self._npc_cells: dict[str, list[str]] = {}   # npc_id(小文字) -> セル名リスト
 
@@ -120,10 +150,12 @@ class AllRecordInfos:
                 continue
             rnam_field = main.fields_map.get("RNAM")
             cnam_field = main.fields_map.get("CNAM")
+            fnam_field = main.fields_map.get("FNAM")
             anam_field = main.fields_map.get("ANAM")  # NPC_のANAM = ファクションID
             flag_field = main.fields_map.get("FLAG")
             rnam    = rnam_field.to_display_str(enc).strip() if rnam_field else ""
             cnam    = cnam_field.to_display_str(enc).strip() if cnam_field else ""
+            fnam    = fnam_field.to_display_str(enc).strip() if fnam_field else ""
             faction = anam_field.to_display_str(enc).strip() if anam_field else ""
             is_female = False
             if flag_field:
@@ -135,37 +167,34 @@ class AllRecordInfos:
                 "faction":   faction,
                 "is_female": is_female,
             }
+            for lookup in {npc_id.casefold(), fnam.casefold()}:
+                if lookup:
+                    self._npc_name_to_infos.setdefault(lookup, []).append(npc_ri)
 
         # NPC→セル配置インデックスを構築（CELL内のForm Referenceを走査）
+        # CELL はユニークキーがなく、RecordInfo上では別Modの同一序数CELLが
+        # 同じ箱に混ざるため、表示用の配置は実ロード順リストから作る。
         npc_id_set = set(self._npc_attrs.keys())
-        for cell_ri in self.get_info_list("CELL"):
-            for rec in cell_ri.records:
-                enc = rec.mod_file.encoding if rec.mod_file else TesEncoding.CP1252
-                # 最初のNAMEフィールド = セル名（FRMR前）
-                cell_name = ""
-                for f in rec.fields:
-                    if f.field_type == "NAME":
-                        cell_name = f.to_display_str(enc).strip()
-                        break
-                    if f.field_type == "FRMR":
-                        break
-                # FRMR + NAME ペアを走査してNPC配置を検出
-                fields = rec.fields
-                i = 0
-                while i < len(fields):
-                    f = fields[i]
-                    if f.field_type == "FRMR" and i + 1 < len(fields):
-                        nxt = fields[i + 1]
-                        if nxt.field_type == "NAME":
-                            obj_id = nxt.to_display_str(enc).strip().lower()
-                            if obj_id in npc_id_set:
-                                if obj_id not in self._npc_cells:
-                                    self._npc_cells[obj_id] = []
-                                if cell_name not in self._npc_cells[obj_id]:
-                                    self._npc_cells[obj_id].append(cell_name)
-                        i += 2
-                    else:
-                        i += 1
+        for rec in self._records_in_load_order:
+            if rec.record_type != "CELL":
+                continue
+            enc = rec.mod_file.encoding if rec.mod_file else TesEncoding.CP1252
+            cell_name = self._cell_display_name(rec, enc)
+            fields = rec.fields
+            i = 0
+            while i < len(fields):
+                f = fields[i]
+                if f.field_type == "FRMR" and i + 1 < len(fields):
+                    nxt = fields[i + 1]
+                    if nxt.field_type == "NAME":
+                        obj_id = nxt.to_display_str(enc).strip().lower()
+                        if obj_id in npc_id_set and cell_name:
+                            self._npc_cells.setdefault(obj_id, [])
+                            if cell_name not in self._npc_cells[obj_id]:
+                                self._npc_cells[obj_id].append(cell_name)
+                    i += 2
+                else:
+                    i += 1
 
         for info_ri in self.get_info_list("INFO"):
             info_key = info_ri.key
@@ -232,6 +261,36 @@ class AllRecordInfos:
                 self._info_to_dial[info_key]
             )
 
+    @staticmethod
+    def _cell_display_name(record: Record, enc: TesEncoding) -> str:
+        cell_name = ""
+        region_name = ""
+        grid_x = None
+        grid_y = None
+        for field in record.fields:
+            if field.field_type in ("FRMR", "MVRF", "NAM0"):
+                break
+            if field.field_type == "NAME" and not cell_name:
+                cell_name = field.to_display_str(enc).strip()
+            elif field.field_type == "RGNN" and not region_name:
+                region_name = field.to_display_str(enc).strip()
+            elif field.field_type == "DATA":
+                raw = field.data.raw()
+                if len(raw) >= 12:
+                    try:
+                        grid_x, grid_y = struct.unpack_from("<ii", raw, 4)
+                    except struct.error:
+                        grid_x = grid_y = None
+        if cell_name:
+            return cell_name
+        if region_name and grid_x is not None and grid_y is not None:
+            return f"{region_name} ({grid_x}, {grid_y})"
+        if region_name:
+            return region_name
+        if grid_x is not None and grid_y is not None:
+            return f"外部セル ({grid_x}, {grid_y})"
+        return ""
+
     def get_canonical_dial_key(self, dial_key: str) -> str:
         """エイリアスDIALキーを正規キーに変換する。正規キーはそのまま返す。"""
         visited: set[str] = set()
@@ -276,6 +335,20 @@ class AllRecordInfos:
         info_dict = self._data.get("INFO", {})
         return [info_dict[k] for k in keys if k in info_dict]
 
+    def get_dial_key_for_info(self, info_key: str) -> str:
+        """INFO INAM から親DIALキーを返す。見つからなければ空文字。"""
+        value = info_key.strip()
+        if not value:
+            return ""
+        dial_key = self._info_to_dial.get(value)
+        if dial_key:
+            return dial_key
+        target = value.casefold()
+        for key, candidate in self._info_to_dial.items():
+            if key.strip().casefold() == target:
+                return candidate
+        return ""
+
     def get_infos_by_actor(self, npc_id: str) -> list[RecordInfo]:
         """ONAM が npc_id（大文字小文字を区別しない）に一致するINFOを返す。"""
         keys = self._npc_to_infos.get(npc_id.lower(), [])
@@ -293,11 +366,18 @@ class AllRecordInfos:
         npc_id は大文字小文字を区別しない。"""
         return self._npc_attrs.get(npc_id.lower())
 
+    def find_npc_infos_by_name_or_id(self, value: str) -> list[RecordInfo]:
+        """NPCの表示名またはIDからNPC_ RecordInfoを返す。"""
+        key = value.strip().casefold()
+        if not key:
+            return []
+        return list(self._npc_name_to_infos.get(key, []))
+
     def get_npc_cells(self, npc_id: str) -> list[str]:
         """NPC IDが配置されているセル名リストを返す。
         CELL レコードの Form Reference から抽出。
         npc_id は大文字小文字を区別しない。"""
-        return self._npc_cells.get(npc_id.lower(), [])
+        return list(reversed(self._npc_cells.get(npc_id.lower(), [])))
 
     def get_actor_info_counts(self) -> dict[str, tuple[str, int]]:
         """アクター(ONAM)ごとのINFO件数を返す。

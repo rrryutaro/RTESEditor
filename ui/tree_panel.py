@@ -1,6 +1,7 @@
 from __future__ import annotations
 from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
 from PySide6.QtGui import QFont
+from app.record_labels import record_type_label
 from app.record_info import AllRecordInfos
 from tes3.format.format_loader import FormatLoader
 
@@ -20,7 +21,7 @@ class TreePanel(QTreeWidget):
             if rec_fmt and not rec_fmt.is_show:
                 continue
             infos = all_records.get_info_list(record_type)
-            label = rec_fmt.description if rec_fmt else record_type
+            label = record_type_label(record_type, rec_fmt.description if rec_fmt else None)
             item = QTreeWidgetItem([f"{label} ({len(infos)})"])
             item.setData(0, 256, record_type)  # Qt.UserRole = 256
             if rec_fmt and not rec_fmt.is_edit:

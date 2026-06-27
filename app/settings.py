@@ -129,3 +129,227 @@ class Settings:
     def set_info_table_columns(self, visible_indices: list[int]) -> None:
         self._data["info_table_columns"] = visible_indices
         self.save()
+
+    # --- 読み上げ設定 ---
+
+    def get_tts_enabled(self) -> bool:
+        return bool(self._data.get("tts_enabled", False))
+
+    def set_tts_enabled(self, value: bool) -> None:
+        self._data["tts_enabled"] = bool(value)
+        self.save()
+
+    def get_tts_engine(self) -> str:
+        engine = self._data.get("tts_engine", "sapi5")
+        return "voicevox" if engine == "voicevox" else "sapi5"
+
+    def set_tts_engine(self, value: str) -> None:
+        self._data["tts_engine"] = "voicevox" if value == "voicevox" else "sapi5"
+        self.save()
+
+    def get_tts_voice(self) -> str:
+        return self._data.get("tts_voice", "")
+
+    def set_tts_voice(self, desc: str) -> None:
+        self._data["tts_voice"] = desc or ""
+        self.save()
+
+    def get_tts_vv_speaker(self) -> int:
+        try:
+            return int(self._data.get("tts_vv_speaker", 0) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def set_tts_vv_speaker(self, value: int) -> None:
+        try:
+            self._data["tts_vv_speaker"] = int(value)
+        except (TypeError, ValueError):
+            self._data["tts_vv_speaker"] = 0
+        self.save()
+
+    def get_tts_rate(self) -> int:
+        try:
+            return int(self._data.get("tts_rate", 0) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def set_tts_rate(self, value: int) -> None:
+        self._data["tts_rate"] = max(-10, min(10, int(value)))
+        self.save()
+
+    def get_tts_volume(self) -> int:
+        try:
+            value = int(self._data.get("tts_volume", 100))
+        except (TypeError, ValueError):
+            value = 100
+        return max(0, min(100, value))
+
+    def set_tts_volume(self, value: int) -> None:
+        self._data["tts_volume"] = max(0, min(100, int(value)))
+        self.save()
+
+    def get_tts_interrupt(self) -> bool:
+        return bool(self._data.get("tts_interrupt", True))
+
+    def set_tts_interrupt(self, value: bool) -> None:
+        self._data["tts_interrupt"] = bool(value)
+        self.save()
+
+    def get_tts_voicevox_dictionary(self) -> list[dict]:
+        value = self._data.get("tts_voicevox_dictionary", {})
+        if isinstance(value, dict):
+            entries = value.get("entries", [])
+        else:
+            entries = value
+        if not isinstance(entries, list):
+            return []
+        return [entry for entry in (self._normalize_voicevox_dict_entry(e) for e in entries) if entry]
+
+    def set_tts_voicevox_dictionary(self, entries: list[dict]) -> None:
+        normalized = [
+            entry
+            for entry in (self._normalize_voicevox_dict_entry(e) for e in entries)
+            if entry
+        ]
+        self._data["tts_voicevox_dictionary"] = {
+            "version": 1,
+            "entries": normalized,
+        }
+        self.save()
+
+    @staticmethod
+    def _normalize_voicevox_dict_entry(entry: object) -> dict | None:
+        if not isinstance(entry, dict):
+            return None
+        surface = str(entry.get("surface", "") or "").strip()
+        pronunciation = str(entry.get("pronunciation", "") or "").strip()
+        if not surface and not pronunciation:
+            return None
+        try:
+            accent_type = int(entry.get("accent_type", 1) or 1)
+        except (TypeError, ValueError):
+            accent_type = 1
+        try:
+            priority = int(entry.get("priority", 5) or 5)
+        except (TypeError, ValueError):
+            priority = 5
+        word_type = str(entry.get("word_type", "PROPER_NOUN") or "PROPER_NOUN")
+        if word_type not in {"PROPER_NOUN", "COMMON_NOUN", "VERB", "ADJECTIVE", "SUFFIX"}:
+            word_type = "PROPER_NOUN"
+        return {
+            "surface": surface,
+            "pronunciation": pronunciation,
+            "accent_type": max(0, min(99, accent_type)),
+            "word_type": word_type,
+            "priority": max(0, min(10, priority)),
+            "voicevox_uuid": str(entry.get("voicevox_uuid", "") or "").strip(),
+        }
+
+    def get_journal_speak_date(self) -> bool:
+        return bool(self._data.get("journal_speak_date", True))
+
+    def set_journal_speak_date(self, value: bool) -> None:
+        self._data["journal_speak_date"] = bool(value)
+        self.save()
+
+    def get_journal_speak_quest_title_in_date_view(self) -> bool:
+        return bool(self._data.get("journal_speak_quest_title_in_date_view", True))
+
+    def set_journal_speak_quest_title_in_date_view(self, value: bool) -> None:
+        self._data["journal_speak_quest_title_in_date_view"] = bool(value)
+        self.save()
+
+    def get_journal_view_mode(self) -> str:
+        value = self._data.get("journal_view_mode", "date")
+        return "quest" if value == "quest" else "date"
+
+    def set_journal_view_mode(self, value: str) -> None:
+        self._data["journal_view_mode"] = "quest" if value == "quest" else "date"
+        self.save()
+
+    def get_journal_sort_order(self) -> str:
+        value = self._data.get("journal_sort_order", "asc")
+        return "desc" if value == "desc" else "asc"
+
+    def set_journal_sort_order(self, value: str) -> None:
+        self._data["journal_sort_order"] = "desc" if value == "desc" else "asc"
+        self.save()
+
+    def get_conversation_font_size(self) -> int:
+        try:
+            value = int(self._data.get("conversation_font_size", 13))
+        except (TypeError, ValueError):
+            value = 13
+        return max(10, min(28, value))
+
+    def set_conversation_font_size(self, value: int) -> None:
+        self._data["conversation_font_size"] = max(10, min(28, int(value)))
+        self.save()
+
+    def get_journal_date_font_size(self) -> int:
+        try:
+            value = int(self._data.get("journal_date_font_size", 13))
+        except (TypeError, ValueError):
+            value = 13
+        return max(10, min(28, value))
+
+    def set_journal_date_font_size(self, value: int) -> None:
+        self._data["journal_date_font_size"] = max(10, min(28, int(value)))
+        self.save()
+
+    def get_journal_title_font_size(self) -> int:
+        try:
+            value = int(self._data.get("journal_title_font_size", 13))
+        except (TypeError, ValueError):
+            value = 13
+        return max(10, min(28, value))
+
+    def set_journal_title_font_size(self, value: int) -> None:
+        self._data["journal_title_font_size"] = max(10, min(28, int(value)))
+        self.save()
+
+    def get_journal_body_font_size(self) -> int:
+        try:
+            value = int(self._data.get("journal_body_font_size", 13))
+        except (TypeError, ValueError):
+            value = 13
+        return max(10, min(28, value))
+
+    def set_journal_body_font_size(self, value: int) -> None:
+        self._data["journal_body_font_size"] = max(10, min(28, int(value)))
+        self.save()
+
+    def get_conversation_poll_interval_ms(self) -> int:
+        try:
+            value = int(self._data.get("conversation_poll_interval_ms", 150))
+        except (TypeError, ValueError):
+            value = 150
+        return max(50, min(5000, value))
+
+    def set_conversation_poll_interval_ms(self, value: int) -> None:
+        self._data["conversation_poll_interval_ms"] = max(50, min(5000, int(value)))
+        self.save()
+
+    # --- 本表示設定 ---
+
+    def get_book_font_size(self) -> int:
+        try:
+            value = int(self._data.get("book_font_size", 13))
+        except (TypeError, ValueError):
+            value = 13
+        return max(10, min(28, value))
+
+    def set_book_font_size(self, value: int) -> None:
+        self._data["book_font_size"] = max(10, min(28, int(value)))
+        self.save()
+
+    def get_book_line_height_percent(self) -> int:
+        try:
+            value = int(self._data.get("book_line_height_percent", 122))
+        except (TypeError, ValueError):
+            value = 122
+        return max(100, min(180, value))
+
+    def set_book_line_height_percent(self, value: int) -> None:
+        self._data["book_line_height_percent"] = max(100, min(180, int(value)))
+        self.save()

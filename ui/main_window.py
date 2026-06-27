@@ -6,11 +6,14 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QCoreApplication, QByteArray
 from app.mod_manager import ModManager
+from app.record_labels import record_type_label
 from ui.tree_panel import TreePanel
 from ui.record_grid import RecordGrid
 from ui.conflict_grid import ConflictGrid
 from ui.text_panel import TextPanel
 from ui.dialogue_panel import DialoguePanel
+from ui.conversation_panel import ConversationPanel
+from app.tts_service import TTSService
 
 
 class MainWindow(QMainWindow):
@@ -18,6 +21,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self._manager = ModManager()
+        self._tts = TTSService()
+        self._tts.set_interrupt(True)
         self._setup_ui()
         self._setup_menu()
         self._setup_shortcuts()
@@ -85,6 +90,12 @@ class MainWindow(QMainWindow):
         # ----------------------------------------------------------------
         self._dialogue_panel = DialoguePanel(self)
         self._tabs.addTab(self._dialogue_panel, self.tr("ダイアログ"))
+
+        # ----------------------------------------------------------------
+        # 読み上げタブ
+        # ----------------------------------------------------------------
+        self._conversation_panel = ConversationPanel(self, self._tts)
+        self._tabs.addTab(self._conversation_panel, self.tr("読み上げ"))
 
         self._tabs.currentChanged.connect(self._on_tab_changed)
 
@@ -161,6 +172,10 @@ class MainWindow(QMainWindow):
     @property
     def dialogue_panel(self) -> DialoguePanel:
         return self._dialogue_panel
+
+    @property
+    def conversation_panel(self) -> ConversationPanel:
+        return self._conversation_panel
 
     @property
     def search_text(self) -> str:
@@ -349,6 +364,7 @@ class MainWindow(QMainWindow):
         self._conflict_grid.setFont(font)
         self._text_panel.setFont(font)
         self._dialogue_panel.setFont(font)
+        self._conversation_panel.setFont(font)
 
     def _on_topmost_toggled(self, checked: bool) -> None:
         flags = self.windowFlags()
@@ -374,7 +390,7 @@ class MainWindow(QMainWindow):
         self._record_grid.refresh()
 
     def set_status(self, record_name: str, count: int) -> None:
-        self._status_record.setText(f"{record_name}:")
+        self._status_record.setText(f"{record_type_label(record_name)}:")
         self._status_count.setText(str(count))
 
     # ------------------------------------------------------------------
@@ -407,4 +423,6 @@ class MainWindow(QMainWindow):
         s.set_splitter_state("common_v",
             self._common_v_splitter.saveState().toBase64().data().decode("ascii"))
         self._dialogue_panel.save_splitter_states()
+        self._conversation_panel.shutdown()
+        self._tts.shutdown()
         super().closeEvent(event)
