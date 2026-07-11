@@ -1,6 +1,7 @@
 from __future__ import annotations
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QMenu
 from PySide6.QtCore import Qt
+from app.record_fields import get_display_field
 from tes3.format.format_loader import FieldFormat
 
 # C# RTesEdit の TargetRecordInfo.AllFields (KeyFields + EditFields) と同等のデフォルト表示列
@@ -25,6 +26,7 @@ _DEFAULT_COLUMNS: dict[str, list[str]] = {
     "INGR": ["NAME", "FNAM"],
     "LOCK": ["NAME", "FNAM"],
     "PROB": ["NAME", "FNAM"],
+    "CELL": ["NAME"],
 }
 
 
@@ -57,7 +59,7 @@ class RecordGrid(QTableWidget):
         from core.encoding import TesEncoding
         manager = self._main.manager
         fmt     = manager.format_loader.get_record(self._record_type)
-        infos   = manager.all_records.get_info_list(self._record_type)
+        infos   = manager.all_records.get_visible_info_list(self._record_type)
         search  = self._main.search_text
 
         self._field_fmts = fmt.fields if fmt else []
@@ -75,7 +77,7 @@ class RecordGrid(QTableWidget):
             rec = info.main_record
             rec_enc = rec.mod_file.encoding if (rec and rec.mod_file) else TesEncoding.CP1252
             for col_idx, ff in enumerate(self._field_fmts):
-                field = rec.fields_map.get(ff.field_name) if rec else None
+                field = get_display_field(rec, ff.field_name) if rec else None
                 text  = field.to_display_str(rec_enc) if field else ""
                 item  = QTableWidgetItem(text)
                 item.setData(Qt.UserRole, field)

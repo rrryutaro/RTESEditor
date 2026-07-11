@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 from core.encoding import TesEncoding
+from app.record_fields import get_display_field
 from app.record_info import AllRecordInfos
 from app.mod_manager import ModManager
 
@@ -23,7 +24,7 @@ def export_tsv(manager: ModManager, path: str | Path) -> int:
             enc = rec.mod_file.encoding if rec.mod_file else TesEncoding.CP1252
             key = info.key
             for ff in export_fields:
-                field = rec.fields_map.get(ff.field_name)
+                field = get_display_field(rec, ff.field_name)
                 if not field:
                     continue
                 text = field.to_display_str(enc)
@@ -61,7 +62,7 @@ def import_tsv(manager: ModManager, path: str | Path) -> int:
         if ff is None or not ff.is_import:
             continue
 
-        field = rec.fields_map.get(fname)
+        field = get_display_field(rec, fname)
         if not field:
             continue
 

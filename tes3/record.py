@@ -29,6 +29,10 @@ class Record(BaseRecord):
 
     @property
     def primary_key(self) -> str:
+        if self.record_type == "CELL":
+            return self._cell_primary_key()
+        if self.record_type == "PGRD":
+            return self._pgrd_primary_key()
         if self.record_format is None or not self.record_format.unique_key_field:
             return str(self.index)
         field_name = self.record_format.unique_key_field
@@ -37,6 +41,40 @@ class Record(BaseRecord):
             enc = self.mod_file.encoding if self.mod_file else TesEncoding.CP1252
             return field.to_display_str(enc)
         return ""
+
+    def _first_field(self, field_name: str) -> Field | None:
+        for field in self.fields:
+            if field.field_type == field_name:
+                return field
+        return None
+
+    def _cell_primary_key(self) -> str:
+        enc = self.mod_file.encoding if self.mod_file else TesEncoding.CP1252
+        name_field = self._first_field("NAME")
+        name = name_field.to_display_str(enc).strip() if name_field else ""
+        if name:
+            return name
+
+        data_field = self._first_field("DATA")
+        raw = data_field.data.raw() if data_field else b""
+        if len(raw) >= 12:
+            flags, grid_x, grid_y = struct.unpack_from("<Iii", raw, 0)
+            return f"flags:{flags}:grid:{grid_x},{grid_y}"
+        return str(self.index)
+
+    def _pgrd_primary_key(self) -> str:
+        enc = self.mod_file.encoding if self.mod_file else TesEncoding.CP1252
+        name_field = self._first_field("NAME")
+        name = name_field.to_display_str(enc).strip() if name_field else ""
+        if name:
+            return name
+
+        data_field = self._first_field("DATA")
+        raw = data_field.data.raw() if data_field else b""
+        if len(raw) >= 8:
+            grid_x, grid_y = struct.unpack_from("<ii", raw, 0)
+            return f"grid:{grid_x},{grid_y}"
+        return str(self.index)
 
     def mark_modified(self) -> None:
         self.is_modified = True

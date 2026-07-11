@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QPalette
 from app.record_info import RecordInfo
+from app.record_fields import get_display_field
 
 
 class ConflictGrid(QTableWidget):
@@ -57,7 +58,7 @@ class ConflictGrid(QTableWidget):
             name_item.setData(Qt.UserRole + 1, record)  # 所属 Record
             self.setItem(row_idx, 0, name_item)
             for col_idx, ff in enumerate(field_fmts):
-                field = record.fields_map.get(ff.field_name)
+                field = get_display_field(record, ff.field_name)
                 text  = field.to_display_str(rec_enc) if field else ""
                 item  = QTableWidgetItem(text)
                 item.setData(Qt.UserRole,     field)   # Field オブジェクト

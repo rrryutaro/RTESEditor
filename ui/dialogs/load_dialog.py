@@ -4,7 +4,7 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableWidget, QTableWidgetItem, QFileDialog,
-    QComboBox, QCheckBox, QDialogButtonBox,
+    QComboBox, QCheckBox, QDialogButtonBox, QInputDialog, QMessageBox,
 )
 from PySide6.QtCore import Qt
 from core.encoding import TesEncoding
@@ -38,6 +38,21 @@ class LoadDialog(QDialog):
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
+
+        pattern_row = QHBoxLayout()
+        pattern_row.addWidget(QLabel(self.tr("パターン:")))
+        self._pattern_combo = QComboBox()
+        self._load_pattern_btn = QPushButton(self.tr("読込"))
+        self._save_pattern_btn = QPushButton(self.tr("現在を登録"))
+        self._delete_pattern_btn = QPushButton(self.tr("削除"))
+        self._load_pattern_btn.clicked.connect(self._on_load_pattern)
+        self._save_pattern_btn.clicked.connect(self._on_save_pattern)
+        self._delete_pattern_btn.clicked.connect(self._on_delete_pattern)
+        pattern_row.addWidget(self._pattern_combo, 1)
+        pattern_row.addWidget(self._load_pattern_btn)
+        pattern_row.addWidget(self._save_pattern_btn)
+        pattern_row.addWidget(self._delete_pattern_btn)
+        layout.addLayout(pattern_row)
 
         self._table = QTableWidget(0, 5)
         self._table.setHorizontalHeaderLabels([
@@ -79,6 +94,7 @@ class LoadDialog(QDialog):
         buttons.accepted.connect(self._on_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+        self._refresh_patterns()
 
     def _on_add(self) -> None:
         from app.settings import Settings
@@ -134,7 +150,13 @@ class LoadDialog(QDialog):
 
     def _restore_last_files(self) -> None:
         from app.settings import Settings
-        for entry in Settings.instance().get_last_files():
+        self._load_entries(Settings.instance().get_last_files(), append=True)
+
+    def _load_entries(self, entries: list[dict], *, append: bool = False) -> None:
+        if not append:
+            self._table.setRowCount(0)
+
+        for entry in entries:
             path = Path(entry.get("path", ""))
             if not path.exists():
                 continue
@@ -147,6 +169,92 @@ class LoadDialog(QDialog):
                 entry.get("is_save", False),
                 entry.get("is_search_target", True),
             )
+
+    def _current_entries_as_dicts(self) -> list[dict]:
+        entries: list[dict] = []
+        for row in range(self._table.rowCount()):
+            path             = self._table.item(row, self._COL_NAME).data(Qt.UserRole)
+            enc              = self._table.cellWidget(row, self._COL_ENC).currentData()
+            is_overwrite     = self._table.cellWidget(row, self._COL_OVER).isChecked()
+            is_save          = self._table.cellWidget(row, self._COL_SAVE).isChecked()
+            is_search_target = self._table.cellWidget(row, self._COL_SEARCH).isChecked()
+            entries.append({
+                "path":             str(path),
+                "encoding":         enc.value,
+                "is_overwrite":     is_overwrite,
+                "is_save":          is_save,
+                "is_search_target": is_search_target,
+            })
+        return entries
+
+    def _refresh_patterns(self, select_name: str | None = None) -> None:
+        from app.settings import Settings
+        self._pattern_combo.clear()
+        for pattern in Settings.instance().get_load_patterns():
+            self._pattern_combo.addItem(pattern["name"], pattern)
+        if select_name:
+            index = self._pattern_combo.findText(select_name)
+            if index >= 0:
+                self._pattern_combo.setCurrentIndex(index)
+        has_patterns = self._pattern_combo.count() > 0
+        self._load_pattern_btn.setEnabled(has_patterns)
+        self._delete_pattern_btn.setEnabled(has_patterns)
+
+    def _on_load_pattern(self) -> None:
+        pattern = self._pattern_combo.currentData()
+        if not isinstance(pattern, dict):
+            return
+        entries = pattern.get("entries", [])
+        if isinstance(entries, list):
+            self._load_entries(entries)
+
+    def _on_save_pattern(self) -> None:
+        from app.settings import Settings
+        current_name = self._pattern_combo.currentText()
+        name, ok = QInputDialog.getText(
+            self,
+            self.tr("パターン登録"),
+            self.tr("パターン名:"),
+            QLineEdit.Normal,
+            current_name,
+        )
+        name = name.strip()
+        if not ok or not name:
+            return
+
+        entries = self._current_entries_as_dicts()
+        patterns = Settings.instance().get_load_patterns()
+        for pattern in patterns:
+            if pattern["name"] == name:
+                pattern["entries"] = entries
+                break
+        else:
+            patterns.append({"name": name, "entries": entries})
+        Settings.instance().set_load_patterns(patterns)
+        self._refresh_patterns(name)
+
+    def _on_delete_pattern(self) -> None:
+        from app.settings import Settings
+        pattern = self._pattern_combo.currentData()
+        if not isinstance(pattern, dict):
+            return
+        name = pattern.get("name", "")
+        ret = QMessageBox.question(
+            self,
+            self.tr("パターン削除"),
+            self.tr("パターン「{0}」を削除しますか？").format(name),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if ret != QMessageBox.Yes:
+            return
+        patterns = [
+            item
+            for item in Settings.instance().get_load_patterns()
+            if item.get("name") != name
+        ]
+        Settings.instance().set_load_patterns(patterns)
+        self._refresh_patterns()
 
     @staticmethod
     def _detect_encoding(path: Path) -> TesEncoding:
@@ -181,22 +289,18 @@ class LoadDialog(QDialog):
     def _on_accept(self) -> None:
         from app.settings import Settings
         self.selected_entries = []
-        last_files = []
-        for row in range(self._table.rowCount()):
-            path             = self._table.item(row, self._COL_NAME).data(Qt.UserRole)
-            enc              = self._table.cellWidget(row, self._COL_ENC).currentData()
-            is_overwrite     = self._table.cellWidget(row, self._COL_OVER).isChecked()
-            is_save          = self._table.cellWidget(row, self._COL_SAVE).isChecked()
-            is_search_target = self._table.cellWidget(row, self._COL_SEARCH).isChecked()
+        last_files = self._current_entries_as_dicts()
+        for entry in last_files:
+            path             = Path(entry["path"])
+            enc              = next(
+                (e for e in TesEncoding if e.value == entry["encoding"]),
+                TesEncoding.CP1252,
+            )
+            is_overwrite     = bool(entry["is_overwrite"])
+            is_save          = bool(entry["is_save"])
+            is_search_target = bool(entry["is_search_target"])
             self.selected_entries.append(
                 ModLoadEntry(path, enc, is_overwrite, is_save, is_search_target)
             )
-            last_files.append({
-                "path":             str(path),
-                "encoding":         enc.value,
-                "is_overwrite":     is_overwrite,
-                "is_save":          is_save,
-                "is_search_target": is_search_target,
-            })
         Settings.instance().set_last_files(last_files)
         self.accept()

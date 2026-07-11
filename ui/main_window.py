@@ -12,8 +12,6 @@ from ui.record_grid import RecordGrid
 from ui.conflict_grid import ConflictGrid
 from ui.text_panel import TextPanel
 from ui.dialogue_panel import DialoguePanel
-from ui.conversation_panel import ConversationPanel
-from app.tts_service import TTSService
 
 
 class MainWindow(QMainWindow):
@@ -21,8 +19,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self._manager = ModManager()
-        self._tts = TTSService()
-        self._tts.set_interrupt(True)
         self._setup_ui()
         self._setup_menu()
         self._setup_shortcuts()
@@ -91,12 +87,6 @@ class MainWindow(QMainWindow):
         self._dialogue_panel = DialoguePanel(self)
         self._tabs.addTab(self._dialogue_panel, self.tr("ダイアログ"))
 
-        # ----------------------------------------------------------------
-        # 読み上げタブ
-        # ----------------------------------------------------------------
-        self._conversation_panel = ConversationPanel(self, self._tts)
-        self._tabs.addTab(self._conversation_panel, self.tr("読み上げ"))
-
         self._tabs.currentChanged.connect(self._on_tab_changed)
 
         # ステータスバー
@@ -128,6 +118,8 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(self.tr("エクスポート (TSV)"), self._on_export)
         file_menu.addAction(self.tr("インポート (TSV)"), self._on_import)
+        file_menu.addAction(self.tr("エクスポート (ローカライズJSON)"), self._on_export_localization_json)
+        file_menu.addAction(self.tr("インポート (ローカライズJSON)"), self._on_import_localization_json)
 
         view_menu: QMenu = mb.addMenu(self.tr("表示"))
         view_menu.addAction(self.tr("フォント設定"), self._on_font_setting)
@@ -172,10 +164,6 @@ class MainWindow(QMainWindow):
     @property
     def dialogue_panel(self) -> DialoguePanel:
         return self._dialogue_panel
-
-    @property
-    def conversation_panel(self) -> ConversationPanel:
-        return self._conversation_panel
 
     @property
     def search_text(self) -> str:
@@ -337,6 +325,45 @@ class MainWindow(QMainWindow):
         self._record_grid.refresh()
         QMessageBox.information(self, self.tr("インポート完了"), f"{count} 件を更新しました。")
 
+    def _on_export_localization_json(self) -> None:
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from app.localization_json import export_localization_json
+        path, _ = QFileDialog.getSaveFileName(
+            self, self.tr("ローカライズJSONエクスポート"),
+            "", self.tr("JSON ファイル (*.json);;すべてのファイル (*)")
+        )
+        if not path:
+            return
+        count = export_localization_json(self._manager, path)
+        QMessageBox.information(
+            self,
+            self.tr("エクスポート完了"),
+            f"{count} 件を書き出しました。"
+        )
+
+    def _on_import_localization_json(self) -> None:
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from app.localization_json import import_localization_json
+        path, _ = QFileDialog.getOpenFileName(
+            self, self.tr("ローカライズJSONインポート"),
+            "", self.tr("JSON ファイル (*.json);;すべてのファイル (*)")
+        )
+        if not path:
+            return
+        result = import_localization_json(self._manager, path)
+        self._record_grid.refresh()
+        message = (
+            f"{result.updated} 件を更新しました。\n"
+            f"{result.skipped} 件をスキップしました。"
+        )
+        warnings = result.warnings or []
+        if warnings:
+            preview = "\n".join(warnings[:10])
+            if len(warnings) > 10:
+                preview += f"\n...他 {len(warnings) - 10} 件"
+            message += "\n\n警告:\n" + preview
+        QMessageBox.information(self, self.tr("インポート完了"), message)
+
     def _on_font_setting(self) -> None:
         from PySide6.QtWidgets import QFontDialog
         from PySide6.QtGui import QFont
@@ -364,7 +391,6 @@ class MainWindow(QMainWindow):
         self._conflict_grid.setFont(font)
         self._text_panel.setFont(font)
         self._dialogue_panel.setFont(font)
-        self._conversation_panel.setFont(font)
 
     def _on_topmost_toggled(self, checked: bool) -> None:
         flags = self.windowFlags()
@@ -423,6 +449,4 @@ class MainWindow(QMainWindow):
         s.set_splitter_state("common_v",
             self._common_v_splitter.saveState().toBase64().data().decode("ascii"))
         self._dialogue_panel.save_splitter_states()
-        self._conversation_panel.shutdown()
-        self._tts.shutdown()
         super().closeEvent(event)

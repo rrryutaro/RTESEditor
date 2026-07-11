@@ -33,7 +33,27 @@ class RecordInfo:
             for r in self.records
             if not r.mod_file or r.mod_file.is_search_target
         ]
-        return all(any(r.find(term, encoding) for r in records) for term in terms)
+        return all(
+            any(self._record_find(r, term, encoding) for r in records)
+            for term in terms
+        )
+
+    @staticmethod
+    def _record_find(record: Record, term: str, encoding: TesEncoding | None = None) -> bool:
+        if record.find(term, encoding):
+            return True
+        overrides = getattr(record, "_display_field_overrides", None)
+        if not overrides:
+            return False
+        for field in overrides.values():
+            enc = (
+                field.parent_record.mod_file.encoding
+                if field.parent_record and field.parent_record.mod_file
+                else encoding or TesEncoding.CP1252
+            )
+            if term in field.to_display_str(enc):
+                return True
+        return False
 
     def write(self, buffer: bytearray, mod_file) -> None:
         for record in self.records:
@@ -76,6 +96,21 @@ class AllRecordInfos:
 
     def get_info_list(self, record_type: str) -> list[RecordInfo]:
         return list(self._data.get(record_type, {}).values())
+
+    def get_visible_info_list(self, record_type: str) -> list[RecordInfo]:
+        infos = self.get_info_list(record_type)
+        if record_type != "CELL":
+            return infos
+        return [
+            info
+            for info in infos
+            if not self._is_hidden_cell_localization_target(info)
+        ]
+
+    @staticmethod
+    def _is_hidden_cell_localization_target(info: RecordInfo) -> bool:
+        main = info.main_record
+        return bool(main is not None and getattr(main, "_hide_as_cell_localization_target", False))
 
     def find_record_info(self, record_type: str, key: str) -> RecordInfo | None:
         """レコードIDから最終ロード状態の RecordInfo を探す。"""
@@ -135,6 +170,7 @@ class AllRecordInfos:
         self._npc_name_to_infos = {}
         self._npc_attrs = {}
         self._npc_cells: dict[str, list[str]] = {}   # npc_id(小文字) -> セル名リスト
+        self._build_cell_localization_aliases()
 
         # NPC_ 静的属性インデックスを構築
         for npc_ri in self.get_info_list("NPC_"):
@@ -418,3 +454,95 @@ class AllRecordInfos:
             names[key]  = display
             counts[key] = counts.get(key, 0) + 1
         return {k: (names[k], counts[k]) for k in sorted(counts, key=lambda k: names[k])}
+
+    # ------------------------------------------------------------------
+    # CELL ローカライズ表示
+    # ------------------------------------------------------------------
+
+    def _build_cell_localization_aliases(self) -> None:
+        for record in self._records_in_load_order:
+            if hasattr(record, "_display_field_overrides"):
+                delattr(record, "_display_field_overrides")
+            if hasattr(record, "_hide_as_cell_localization_target"):
+                delattr(record, "_hide_as_cell_localization_target")
+
+        seen_names: set[str] = set()
+        by_mod: dict[object, list[Record]] = {}
+        for record in self._records_in_load_order:
+            if record.record_type != "CELL":
+                continue
+            by_mod.setdefault(record.mod_file, []).append(record)
+
+        for records in by_mod.values():
+            groups: dict[tuple[tuple[str, bytes], ...], list[tuple[Record, str]]] = {}
+            for record in records:
+                name = self._cell_first_name(record)
+                if not name:
+                    continue
+                groups.setdefault(self._cell_localization_signature(record), []).append(
+                    (record, name)
+                )
+
+            for grouped in groups.values():
+                unique_names = {name for _record, name in grouped}
+                if len(unique_names) < 2:
+                    continue
+
+                targets = [
+                    (record, name)
+                    for record, name in grouped
+                    if name.casefold() not in seen_names
+                ]
+                if not targets:
+                    continue
+                target_record, _target_name = targets[-1]
+                target_field = self._cell_first_name_field(target_record)
+                if target_field is None:
+                    continue
+                setattr(target_record, "_hide_as_cell_localization_target", True)
+
+                for record, name in grouped:
+                    if record is target_record:
+                        continue
+                    if name.casefold() not in seen_names:
+                        continue
+                    overrides = getattr(record, "_display_field_overrides", None)
+                    if overrides is None:
+                        overrides = {}
+                        setattr(record, "_display_field_overrides", overrides)
+                    overrides["NAME"] = target_field
+
+            for record in records:
+                name = self._cell_first_name(record)
+                if name:
+                    seen_names.add(name.casefold())
+
+    @staticmethod
+    def _cell_first_name_field(record: Record):
+        for field in record.fields:
+            if field.field_type == "NAME":
+                return field
+        return None
+
+    def _cell_first_name(self, record: Record) -> str:
+        field = self._cell_first_name_field(record)
+        if field is None:
+            return ""
+        enc = record.mod_file.encoding if record.mod_file else TesEncoding.CP1252
+        return field.to_display_str(enc).strip()
+
+    @staticmethod
+    def _cell_localization_signature(record: Record) -> tuple[tuple[str, bytes], ...]:
+        result: list[tuple[str, bytes]] = []
+        first_name_done = False
+        for field in record.fields:
+            if field.field_type == "NAME" and not first_name_done:
+                first_name_done = True
+                continue
+
+            raw = field.data.raw()
+            if field.field_type in ("FRMR", "MVRF") and len(raw) >= 4:
+                local_id = int.from_bytes(raw[:4], "little") & 0x00FFFFFF
+                raw = local_id.to_bytes(4, "little") + raw[4:]
+            result.append((field.field_type, raw))
+        return tuple(result)

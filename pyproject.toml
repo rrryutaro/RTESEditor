@@ -4,12 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "RTESEditor"
-version = "0.3.0"
+version = "0.3.1"
 description = "Unified plugin editor for The Elder Scrolls series"
 requires-python = ">=3.11"
 dependencies = [
     "PySide6>=6.6.0",
-    "pywin32>=306; platform_system == 'Windows'",
 ]
 
 [project.scripts]

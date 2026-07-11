@@ -20,7 +20,7 @@ class TreePanel(QTreeWidget):
             rec_fmt = fmt.get_record(record_type)
             if rec_fmt and not rec_fmt.is_show:
                 continue
-            infos = all_records.get_info_list(record_type)
+            infos = all_records.get_visible_info_list(record_type)
             label = record_type_label(record_type, rec_fmt.description if rec_fmt else None)
             item = QTreeWidgetItem([f"{label} ({len(infos)})"])
             item.setData(0, 256, record_type)  # Qt.UserRole = 256

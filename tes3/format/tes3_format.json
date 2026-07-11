@@ -4814,7 +4814,9 @@
       "RecordName": "CELL",
       "Description": "Cell",
       "IsShow": true,
-      "IsEdit": false,
+      "IsEdit": true,
+      "IsImport": true,
+      "IsExport": true,
       "Fields": [
         {
           "CountType": "Required",
@@ -4822,7 +4824,9 @@
           "DataType": "zstring",
           "Description": "Cell Name. Unlike other NAME fields, this is the localized, human-readable name of the cell, not a language-agnostic ID string. Exterior regions are mostly empty strings; for these, the region name is used in the Construction Set.",
           "IsShow": true,
-          "IsEdit": false
+          "IsEdit": true,
+          "IsImport": true,
+          "IsExport": true
         },
         {
           "CountType": "Required",
