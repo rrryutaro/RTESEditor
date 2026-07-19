@@ -1,6 +1,7 @@
 from __future__ import annotations
-from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QMenu
+from PySide6.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem, QMenu
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QBrush, QColor
 from app.record_fields import get_display_field
 from tes3.format.format_loader import FieldFormat
 
@@ -38,11 +39,13 @@ class RecordGrid(QTableWidget):
         self._record_type: str | None = None
         self._field_fmts: list[FieldFormat] = []
         self.setSelectionBehavior(QTableWidget.SelectRows)
-        self.setEditTriggers(QTableWidget.DoubleClicked)
+        # 編集はTextPanel経由で編集先パッチにコピーしてから行う。
+        self.setEditTriggers(QTableWidget.NoEditTriggers)
         self.itemSelectionChanged.connect(self._on_row_changed)
         self.currentItemChanged.connect(self._on_current_item_changed)
         self.clicked.connect(self._on_cell_clicked)
-        self.itemChanged.connect(self._on_cell_changed)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._on_record_menu)
 
         header = self.horizontalHeader()
         header.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -51,6 +54,15 @@ class RecordGrid(QTableWidget):
     def load(self, record_type: str) -> None:
         self._record_type = record_type
         self.refresh()
+
+    def clear_project(self) -> None:
+        self._record_type = None
+        self._field_fmts = []
+        self.clear()
+        self.setRowCount(0)
+        self.setColumnCount(0)
+        self._main.conflict_grid.load(None)
+        self._main.text_panel.set_text("")
 
     def refresh(self) -> None:
         if not self._record_type:
@@ -81,10 +93,15 @@ class RecordGrid(QTableWidget):
                 text  = field.to_display_str(rec_enc) if field else ""
                 item  = QTableWidgetItem(text)
                 item.setData(Qt.UserRole, field)
-                if not ff.is_edit:
-                    item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setData(Qt.UserRole + 1, rec)
+                item.setData(Qt.UserRole + 2, info)
+                if manager.is_record_deleted(rec):
+                    item.setForeground(QBrush(QColor("darkred")))
+                    font = item.font()
+                    font.setStrikeOut(True)
+                    item.setFont(font)
+                    item.setToolTip(self.tr("編集先パッチによりゲーム内削除扱い"))
                 self.setItem(row_idx, col_idx, item)
-            self.item(row_idx, 0).setData(Qt.UserRole + 1, info)
 
         self.resizeColumnsToContents()
         self._clamp_column_widths()
@@ -176,7 +193,7 @@ class RecordGrid(QTableWidget):
         first_item = self.item(row, 0)
         if not first_item:
             return
-        info = first_item.data(Qt.UserRole + 1)
+        info = first_item.data(Qt.UserRole + 2)
 
         # DIAL レコードはエイリアス（ローカライズ名）を含む全バージョンを統合して表示する
         # （tes3jp 等でローカライズ DIAL が異なるキーで登録される場合の英語名参照用）
@@ -200,7 +217,9 @@ class RecordGrid(QTableWidget):
     def _on_current_item_changed(self, current: QTableWidgetItem, _previous) -> None:
         """フォーカスセル変更時: TextPanel を更新する"""
         if current is not None:
-            self._main.text_panel.set_text(current.text(), current)
+            field = current.data(Qt.UserRole)
+            record = current.data(Qt.UserRole + 1)
+            self._main.text_panel.set_record_field(current.text(), field, record)
         else:
             self._main.text_panel.set_text("")
 
@@ -208,31 +227,68 @@ class RecordGrid(QTableWidget):
         """同一セル再クリック時でも TextPanel を更新する（ConflictGrid の read-only 上書き）"""
         item = self.item(index.row(), index.column())
         if item is not None:
-            self._main.text_panel.set_text(item.text(), item)
+            field = item.data(Qt.UserRole)
+            record = item.data(Qt.UserRole + 1)
+            self._main.text_panel.set_record_field(item.text(), field, record)
 
-    def _on_cell_changed(self, item: QTableWidgetItem) -> None:
-        from core.bytes_util import TesBytes
-        from core.encoding import TesEncoding
-        field = item.data(Qt.UserRole)
-        if field is None:
+    def _on_record_menu(self, pos) -> None:
+        item = self.itemAt(pos)
+        if item is None:
             return
-        enc = field.parent_record.mod_file.encoding if (
-            hasattr(field, "parent_record") and field.parent_record and field.parent_record.mod_file
-        ) else TesEncoding.CP1252
-        new_bytes = TesBytes.from_str(
-            item.text(), enc,
-            null_terminate=field.field_format and field.field_format.data_type == "zstring"
+        self.setCurrentCell(item.row(), item.column())
+        record = item.data(Qt.UserRole + 1)
+        if record is None:
+            return
+
+        manager = self._main.manager
+        patch = manager.active_patch
+        menu = QMenu(self)
+        copy_action = menu.addAction(self.tr("編集先パッチへオーバーライドをコピー"))
+        copy_action.setEnabled(patch is not None and record.mod_file is not patch)
+        deleted = manager.is_record_deleted(record)
+        delete_action = menu.addAction(
+            self.tr("ゲーム内削除を解除")
+            if deleted and record.mod_file is patch
+            else self.tr("ゲーム内で削除扱い")
         )
-        field.modify(new_bytes)
-        row = self.currentRow()
-        if row >= 0:
-            fi = self.item(row, 0)
-            if fi:
-                info = fi.data(Qt.UserRole + 1)
-                if self._record_type == "DIAL" and info is not None:
-                    merged = self._main.manager.all_records.get_dial_record_info_with_aliases(
-                        info.key
-                    )
-                    if merged is not None:
-                        info = merged
-                self._main.conflict_grid.load(info)
+        delete_action.setEnabled(
+            patch is not None and (not deleted or record.mod_file is patch)
+        )
+        selected = menu.exec(self.viewport().mapToGlobal(pos))
+        if selected is copy_action:
+            try:
+                manager.copy_record_as_override(record)
+            except (RuntimeError, ValueError) as exc:
+                QMessageBox.warning(self, self.tr("コピーできません"), str(exc))
+                return
+            self._main.refresh_after_patch_edit()
+            return
+        if selected is not delete_action:
+            return
+
+        answer = QMessageBox.question(
+            self,
+            self.tr("ゲーム内削除の変更"),
+            (
+                self.tr("編集先パッチからゲーム内削除指定を解除します。")
+                if deleted
+                else self.tr("編集先パッチでこのレコードをゲーム内削除扱いにします。")
+            )
+            + self.tr("\n参照元ファイルは変更されません。\n\n{0} {1}").format(
+                record.record_type,
+                record.primary_key,
+            ),
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if answer != QMessageBox.Yes:
+            return
+        try:
+            if deleted:
+                manager.restore_record_deleted(record)
+            else:
+                manager.mark_record_deleted(record)
+        except (RuntimeError, ValueError) as exc:
+            QMessageBox.warning(self, self.tr("変更できません"), str(exc))
+            return
+        self._main.refresh_after_patch_edit()

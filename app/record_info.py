@@ -16,9 +16,8 @@ class RecordInfo:
 
     @property
     def main_record(self) -> Record | None:
-        """競合解決後のメインレコード（最後に読み込んだOverwrite対象）"""
-        overwrite = [r for r in self.records if r.mod_file and r.mod_file.is_overwrite]
-        return overwrite[-1] if overwrite else (self.records[-1] if self.records else None)
+        """競合解決後のメインレコード（最後に読み込んだレコード）。"""
+        return self.records[-1] if self.records else None
 
     def add_record(self, record: Record) -> None:
         self.records.append(record)
@@ -340,7 +339,7 @@ class AllRecordInfos:
         """DIALキー（正規またはエイリアス）に対して、
         エイリアスを含む全DIALレコードを統合した RecordInfo を返す。
         DIAL ConflictGrid 表示用。
-        レコードは is_overwrite=False（ESM等）を先に、True（ESP等）を後に並べる。"""
+        レコードは実際のロード順に並べる。"""
         canonical = self.get_canonical_dial_key(dial_key)
         dial_dict = self._data.get("DIAL", {})
 
@@ -352,15 +351,15 @@ class AllRecordInfos:
         if not alias_ris:
             return canonical_ri  # エイリアスなし：そのまま返す
 
-        # 統合 RecordInfo を生成（全レコードを is_overwrite 順で並べる）
+        # 統合 RecordInfo を生成（実際のロード順で並べる）
         merged = RecordInfo(canonical)
         all_recs = []
         for ri in alias_ris:
             all_recs.extend(ri.records)
         if canonical_ri:
             all_recs.extend(canonical_ri.records)
-        # is_overwrite=False（ESM系）→ True（ESP系）の順に並べる
-        all_recs.sort(key=lambda r: (r.mod_file.is_overwrite if r.mod_file else False))
+        load_order = {id(record): index for index, record in enumerate(self._records_in_load_order)}
+        all_recs.sort(key=lambda record: load_order.get(id(record), -1))
         merged.records = all_recs
         return merged
 

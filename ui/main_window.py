@@ -12,6 +12,7 @@ from ui.record_grid import RecordGrid
 from ui.conflict_grid import ConflictGrid
 from ui.text_panel import TextPanel
 from ui.dialogue_panel import DialoguePanel
+from ui.patch_panel import PatchPanel
 
 
 class MainWindow(QMainWindow):
@@ -87,11 +88,15 @@ class MainWindow(QMainWindow):
         self._dialogue_panel = DialoguePanel(self)
         self._tabs.addTab(self._dialogue_panel, self.tr("ダイアログ"))
 
+        self._patch_panel = PatchPanel(self)
+        self._tabs.addTab(self._patch_panel, self.tr("編集先パッチ"))
+
         self._tabs.currentChanged.connect(self._on_tab_changed)
 
         # ステータスバー
         self._status_record = QLabel()
         self._status_count  = QLabel()
+        self._status_patch = QLabel(self.tr("編集先: なし（参照のみ）"))
         self._progress_bar  = QProgressBar()
         self._progress_bar.setFixedHeight(16)
         self._progress_bar.setMaximumWidth(300)
@@ -99,6 +104,7 @@ class MainWindow(QMainWindow):
         status_bar = QStatusBar()
         status_bar.addWidget(self._status_record)
         status_bar.addWidget(self._progress_bar, 1)
+        status_bar.addPermanentWidget(self._status_patch)
         status_bar.addPermanentWidget(self._status_count)
         ver = QCoreApplication.applicationVersion()
         if ver:
@@ -114,12 +120,18 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.tr("開く"), self._on_open)
         file_menu.addAction(self.tr("保存"), self._on_save)
         file_menu.addAction(self.tr("名前を付けて保存"), self._on_save_as)
-        file_menu.addAction(self.tr("修正箇所のみ書き出し"), self._on_save_diff)
         file_menu.addSeparator()
         file_menu.addAction(self.tr("エクスポート (TSV)"), self._on_export)
         file_menu.addAction(self.tr("インポート (TSV)"), self._on_import)
         file_menu.addAction(self.tr("エクスポート (ローカライズJSON)"), self._on_export_localization_json)
         file_menu.addAction(self.tr("インポート (ローカライズJSON)"), self._on_import_localization_json)
+
+        edit_menu: QMenu = mb.addMenu(self.tr("編集"))
+        self._undo_action = edit_menu.addAction(self.tr("元に戻す"), self._on_undo)
+        self._redo_action = edit_menu.addAction(self.tr("やり直す"), self._on_redo)
+        self._undo_action.setShortcut("Ctrl+Z")
+        self._redo_action.setShortcut("Ctrl+Y")
+        self._update_history_actions()
 
         view_menu: QMenu = mb.addMenu(self.tr("表示"))
         view_menu.addAction(self.tr("フォント設定"), self._on_font_setting)
@@ -181,124 +193,268 @@ class MainWindow(QMainWindow):
         entries = dlg.selected_entries
         if not entries:
             return
+        if not self._confirm_discard_changes():
+            return
 
-        self._manager.clear()
-        self._tree.clear()
+        # 全ファイルを一時Managerへ読み込み、成功した場合だけ表示中の
+        # プロジェクトと入れ替える。途中失敗で現在の表示を失わない。
+        candidate_manager = ModManager()
 
         total = len(entries)
         self._progress_bar.setValue(0)
         self._progress_bar.setVisible(True)
 
-        for i, entry in enumerate(entries):
-            label = entry.path.name
-            self._progress_bar.setFormat(
-                f"{label}  ({i + 1}/{total})  %p%"
+        try:
+            for i, entry in enumerate(entries):
+                label = entry.path.name
+                self._progress_bar.setFormat(f"{label}  ({i + 1}/{total})  %p%")
+                last_pct = [-1]
+
+                def _make_cb(bar, pct_state):
+                    def _cb(pos, length):
+                        if length <= 0:
+                            return
+                        pct = int(pos * 100 / length)
+                        if pct != pct_state[0]:
+                            pct_state[0] = pct
+                            bar.setValue(pct)
+                            QApplication.processEvents()
+                    return _cb
+
+                if (
+                    entry.is_save
+                    and entry.create_if_missing
+                    and not entry.path.exists()
+                ):
+                    candidate_manager.create_patch(entry.path, entry.encoding)
+                else:
+                    candidate_manager.load_mod(
+                        entry.path,
+                        entry.encoding,
+                        is_search_target=entry.is_search_target,
+                        on_progress=_make_cb(self._progress_bar, last_pct),
+                        role=entry.role,
+                    )
+        except (OSError, RuntimeError, ValueError) as exc:
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(
+                self,
+                self.tr("読込エラー"),
+                self.tr(
+                    "新しいプロジェクトを読み込めなかったため、現在の表示を維持しました。\n\n"
+                ) + str(exc),
             )
-            last_pct = [-1]
+            return
+        finally:
+            self._progress_bar.setVisible(False)
 
-            def _make_cb(bar, pct_state):
-                def _cb(pos, length):
-                    if length <= 0:
-                        return
-                    pct = int(pos * 100 / length)
-                    if pct != pct_state[0]:
-                        pct_state[0] = pct
-                        bar.setValue(pct)
-                        QApplication.processEvents()
-                return _cb
-
-            self._manager.load_mod(
-                entry.path, entry.encoding,
-                entry.is_overwrite, entry.is_save,
-                entry.is_search_target,
-                on_progress=_make_cb(self._progress_bar, last_pct),
-            )
-
-        self._progress_bar.setVisible(False)
+        repaired, warnings = candidate_manager.repair_orphan_patch_infos()
+        added_masters = candidate_manager.ensure_patch_masters()
+        self._manager = candidate_manager
+        self._record_grid.clear_project()
+        self._dialogue_panel.refresh()
         self._tree.build(self._manager.all_records, self._manager.format_loader)
+        self._patch_panel.refresh()
+        self._update_history_actions()
+        patch = self._manager.active_patch
+        self._status_patch.setText(
+            self.tr("編集先: {0}").format(patch.file_name)
+            if patch is not None
+            else self.tr("編集先: なし（参照のみ）")
+        )
+        if repaired or warnings or added_masters:
+            from PySide6.QtWidgets import QMessageBox
+            message = ""
+            if repaired:
+                message += self.tr(
+                    "既存パッチ内の孤立INFO {0}件に親DIALを復元しました。\n"
+                    "保存するとOpenMWで解釈できる並びへ修正されます。"
+                ).format(repaired)
+            if added_masters:
+                if message:
+                    message += "\n\n"
+                message += self.tr(
+                    "編集先パッチの依存元（MAST）を {0}件追加しました。"
+                ).format(added_masters)
+            if warnings:
+                if message:
+                    message += "\n\n"
+                message += "\n".join(warnings[:10])
+            QMessageBox.information(self, self.tr("編集先パッチの確認"), message)
 
     def _on_save(self) -> None:
+        self._save_active_patch(ask_confirmation=True)
+
+    def _save_active_patch(self, *, ask_confirmation: bool) -> bool:
         from PySide6.QtWidgets import QMessageBox
-        save_mods = [m for m in self._manager.mod_files if m.is_save]
-        if not save_mods:
-            return
-        names = "\n".join(f"  {m.file_name}" for m in save_mods)
-        ret = QMessageBox.question(
-            self, self.tr("保存の確認"),
-            self.tr("以下のファイルを上書き保存します。よろしいですか？\n\n") + names,
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        patch = self._manager.active_patch
+        if patch is None:
+            QMessageBox.information(
+                self,
+                self.tr("編集先パッチがありません"),
+                self.tr("「開く」で既存または新規の編集先パッチを指定してください。"),
+            )
+            return False
+        if not self._confirm_patch_validation():
+            return False
+        if ask_confirmation:
+            answer = QMessageBox.question(
+                self, self.tr("保存の確認"),
+                self.tr(
+                    "編集先パッチだけを保存します。参照元ESM/ESPは変更しません。\n\n  {0}\n\n"
+                    "よろしいですか？"
+                ).format(patch.file_name),
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            )
+            if answer != QMessageBox.Yes:
+                return False
+        try:
+            count = patch.save()
+            self._mark_patch_clean(patch)
+            self._manager.history.clear()
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(self, self.tr("保存エラー"), str(exc))
+            return False
+        QMessageBox.information(
+            self,
+            self.tr("保存完了"),
+            self._save_complete_message(patch, count),
         )
-        if ret != QMessageBox.Yes:
-            return
-        for mod in save_mods:
-            mod.save()
+        self._patch_panel.refresh()
+        self._update_history_actions()
+        return True
 
     def _on_save_as(self) -> None:
         from pathlib import Path
         from PySide6.QtWidgets import QFileDialog, QMessageBox
-        save_mods = [m for m in self._manager.mod_files if m.is_save]
-        if not save_mods:
+        patch = self._manager.active_patch
+        if patch is None:
             QMessageBox.information(
                 self, self.tr("情報"),
-                self.tr("保存対象のファイルがありません。\nファイルを開く際に「保存対象」にチェックを入れてください。")
+                self.tr("編集先パッチがありません。\n「開く」で編集先パッチを指定してください。")
             )
             return
-        mod = save_mods[0]
+        if not self._confirm_patch_validation():
+            return
         path, _ = QFileDialog.getSaveFileName(
             self, self.tr("名前を付けて保存"),
-            str(mod.path),
-            self.tr("TES3 Mod Files (*.esp *.esm);;All Files (*)")
+            str(patch.path),
+            self.tr("TES3 Plugin (*.esp);;All Files (*)")
         )
         if path:
-            mod.path = Path(path)
-            mod.save()
-
-    def _on_save_diff(self) -> None:
-        from pathlib import Path
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
-        all_modified = [
-            r for m in self._manager.mod_files for r in m.records if r.is_modified
-        ]
-        if not all_modified:
-            QMessageBox.information(self, self.tr("情報"), self.tr("修正済みのレコードがありません。"))
-            return
-        save_mods = [m for m in self._manager.mod_files if m.is_save]
-        default_path = str(save_mods[0].path) if save_mods else ""
-        header_mod = save_mods[0] if save_mods else self._manager.mod_files[0]
-        path, _ = QFileDialog.getSaveFileName(
-            self, self.tr("修正箇所のみ書き出し"),
-            default_path,
-            self.tr("TES3 Mod Files (*.esp *.esm);;All Files (*)")
-        )
-        if path:
-            count = self._save_diff_merge(header_mod, all_modified, Path(path))
+            try:
+                from tes3.patch_writer import save_patch
+                count = save_patch(patch, Path(path))
+                patch.path = Path(path)
+                self._mark_patch_clean(patch)
+                self._manager.history.clear()
+            except (OSError, ValueError) as exc:
+                QMessageBox.critical(self, self.tr("保存エラー"), str(exc))
+                return
+            self._status_patch.setText(self.tr("編集先: {0}").format(patch.file_name))
             QMessageBox.information(
-                self, self.tr("書き出し完了"),
-                f"{count} 件のレコードを書き出しました。"
+                self,
+                self.tr("保存完了"),
+                self._save_complete_message(patch, count),
+            )
+            self._patch_panel.refresh()
+            self._update_history_actions()
+
+    @staticmethod
+    def _mark_patch_clean(patch) -> None:
+        for record in [patch.header_record, *patch.records]:
+            if record is None:
+                continue
+            record.is_modified = False
+            for field in record.fields:
+                field.is_modified = False
+        patch.structure_modified = False
+
+    def _confirm_patch_validation(self) -> bool:
+        from PySide6.QtWidgets import QMessageBox
+
+        issues = self._manager.validate_active_patch()
+        errors = [issue.message for issue in issues if issue.severity == "error"]
+        warnings = [issue.message for issue in issues if issue.severity == "warning"]
+        if errors:
+            message = "\n".join(errors[:20])
+            if len(errors) > 20:
+                message += self.tr("\nほか {0}件").format(len(errors) - 20)
+            QMessageBox.critical(
+                self,
+                self.tr("パッチを保存できません"),
+                self.tr("次のエラーを修正してください。\n\n") + message,
+            )
+            return False
+        if warnings:
+            message = "\n".join(warnings[:20])
+            if len(warnings) > 20:
+                message += self.tr("\nほか {0}件").format(len(warnings) - 20)
+            answer = QMessageBox.question(
+                self,
+                self.tr("パッチ検証の警告"),
+                self.tr("次の警告があります。保存を続行しますか？\n\n") + message,
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            return answer == QMessageBox.Yes
+        return True
+
+    def _save_complete_message(self, patch, count: int) -> str:
+        message = self.tr("{0}件のレコードを編集先パッチへ保存しました。").format(count)
+        if patch.last_backup_path is not None:
+            message += self.tr("\n\n保存前のファイルを次へバックアップしました。\n{0}").format(
+                patch.last_backup_path
+            )
+        return message
+
+    def refresh_after_patch_edit(self) -> None:
+        """コピー・アズ・オーバーライド後に全表示を再同期する。"""
+        self._record_grid.refresh()
+        self._dialogue_panel.refresh()
+        self._patch_panel.refresh()
+        self._update_history_actions()
+        patch = self._manager.active_patch
+        if patch is not None:
+            self.statusBar().showMessage(
+                self.tr("{0} に編集内容を追加しました。").format(patch.file_name),
+                5000,
             )
 
-    def _save_diff_merge(self, header_mod, modified_records: list, target) -> int:
-        from pathlib import Path
-        from tes3.reader import Tes3Reader
-        target = Path(target)
-        existing: dict[tuple, object] = {}
-        if target.exists():
-            try:
-                reader = Tes3Reader(self._manager.format_loader)
-                exist_mod = reader.load(target, header_mod.encoding, False, False)
-                for rec in exist_mod.records:
-                    existing[(rec.record_type, rec.primary_key)] = rec
-            except Exception:
-                pass
-        new_mods = {(r.record_type, r.primary_key): r for r in modified_records}
-        existing.update(new_mods)
-        buf = bytearray()
-        if header_mod.header_record:
-            header_mod.header_record.write(buf)
-        for rec in existing.values():
-            rec.write(buf)
-        target.write_bytes(bytes(buf))
-        return len(new_mods)
+    def _on_undo(self) -> None:
+        action = self._manager.history.undo()
+        if action is None:
+            return
+        self.refresh_after_patch_edit()
+        self.statusBar().showMessage(
+            self.tr("元に戻しました: {0}").format(action.description),
+            5000,
+        )
+
+    def _on_redo(self) -> None:
+        action = self._manager.history.redo()
+        if action is None:
+            return
+        self.refresh_after_patch_edit()
+        self.statusBar().showMessage(
+            self.tr("やり直しました: {0}").format(action.description),
+            5000,
+        )
+
+    def _update_history_actions(self) -> None:
+        if not hasattr(self, "_undo_action"):
+            return
+        history = self._manager.history
+        undo_text = self.tr("元に戻す")
+        redo_text = self.tr("やり直す")
+        if history.undo_description:
+            undo_text += f": {history.undo_description}"
+        if history.redo_description:
+            redo_text += f": {history.redo_description}"
+        self._undo_action.setText(undo_text)
+        self._redo_action.setText(redo_text)
+        self._undo_action.setEnabled(history.can_undo)
+        self._redo_action.setEnabled(history.can_redo)
 
     def _on_export(self) -> None:
         from PySide6.QtWidgets import QFileDialog, QMessageBox
@@ -321,8 +477,12 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        count = import_tsv(self._manager, path)
-        self._record_grid.refresh()
+        try:
+            count = import_tsv(self._manager, path)
+        except (UnicodeEncodeError, RuntimeError, ValueError) as exc:
+            QMessageBox.warning(self, self.tr("インポートエラー"), str(exc))
+            return
+        self.refresh_after_patch_edit()
         QMessageBox.information(self, self.tr("インポート完了"), f"{count} 件を更新しました。")
 
     def _on_export_localization_json(self) -> None:
@@ -350,8 +510,12 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        result = import_localization_json(self._manager, path)
-        self._record_grid.refresh()
+        try:
+            result = import_localization_json(self._manager, path)
+        except (OSError, UnicodeError, RuntimeError, ValueError) as exc:
+            QMessageBox.warning(self, self.tr("インポートエラー"), str(exc))
+            return
+        self.refresh_after_patch_edit()
         message = (
             f"{result.updated} 件を更新しました。\n"
             f"{result.skipped} 件をスキップしました。"
@@ -391,6 +555,7 @@ class MainWindow(QMainWindow):
         self._conflict_grid.setFont(font)
         self._text_panel.setFont(font)
         self._dialogue_panel.setFont(font)
+        self._patch_panel.setFont(font)
 
     def _on_topmost_toggled(self, checked: bool) -> None:
         flags = self.windowFlags()
@@ -411,6 +576,8 @@ class MainWindow(QMainWindow):
     def _on_tab_changed(self, index: int) -> None:
         if self._tabs.widget(index) is self._dialogue_panel:
             self._dialogue_panel.refresh()
+        elif self._tabs.widget(index) is self._patch_panel:
+            self._patch_panel.refresh()
 
     def _on_search(self) -> None:
         self._record_grid.refresh()
@@ -441,6 +608,9 @@ class MainWindow(QMainWindow):
                 splitter.restoreState(QByteArray.fromBase64(enc.encode("ascii")))
 
     def closeEvent(self, event) -> None:
+        if not self._confirm_discard_changes():
+            event.ignore()
+            return
         from app.settings import Settings
         s = Settings.instance()
         s.set_geometry(self.saveGeometry().toBase64().data().decode("ascii"))
@@ -450,3 +620,24 @@ class MainWindow(QMainWindow):
             self._common_v_splitter.saveState().toBase64().data().decode("ascii"))
         self._dialogue_panel.save_splitter_states()
         super().closeEvent(event)
+
+    def _confirm_discard_changes(self) -> bool:
+        patch = self._manager.active_patch
+        if patch is None or not patch.is_dirty:
+            return True
+        from PySide6.QtWidgets import QMessageBox
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Warning)
+        box.setWindowTitle(self.tr("未保存の変更"))
+        box.setText(
+            self.tr("編集先パッチ「{0}」に未保存の変更があります。").format(
+                patch.file_name
+            )
+        )
+        box.setInformativeText(self.tr("終了または開き直す前に保存しますか？"))
+        box.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+        box.setDefaultButton(QMessageBox.Save)
+        answer = box.exec()
+        if answer == QMessageBox.Save:
+            return self._save_active_patch(ask_confirmation=False)
+        return answer == QMessageBox.Discard

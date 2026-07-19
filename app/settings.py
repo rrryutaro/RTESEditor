@@ -93,7 +93,7 @@ class Settings:
     # --- 前回開いたファイルリスト ---
 
     def get_last_files(self) -> list[dict]:
-        """[{path, encoding, is_overwrite, is_save, is_search_target}, ...]"""
+        """[{path, encoding, role, is_search_target, create_if_missing}, ...]。"""
         return self._data.get("last_files", [])
 
     def set_last_files(self, entries: list[dict]) -> None:

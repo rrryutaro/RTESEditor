@@ -32,11 +32,9 @@ class _DlgConflictGrid(ConflictGrid):
         record = current.data(Qt.UserRole + 1)
         ff      = getattr(field, "field_format", None)
         is_edit = ff is not None and ff.is_edit
-        is_save = (record is not None and
-                   record.mod_file is not None and
-                   record.mod_file.is_save)
-        if field is not None and is_edit and is_save:
-            self._dlg._text_panel.set_conflict_cell(current.text(), field, record)
+        has_patch = self._dlg._main.manager.active_patch is not None
+        if field is not None and record is not None and is_edit and has_patch:
+            self._dlg._text_panel.set_record_field(current.text(), field, record)
         else:
             self._dlg._text_panel.set_text(current.text())
 

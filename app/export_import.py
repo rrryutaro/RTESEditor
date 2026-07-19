@@ -40,6 +40,8 @@ def export_tsv(manager: ModManager, path: str | Path) -> int:
 def import_tsv(manager: ModManager, path: str | Path) -> int:
     """TSV からテキストを読み込んでレコードに反映する。戻り値は更新フィールド数。"""
     from core.bytes_util import TesBytes
+    if manager.active_patch is None:
+        raise RuntimeError("TSVを取り込む前に編集先パッチを指定してください。")
     updated = 0
     for line in Path(path).read_text(encoding="utf-8").splitlines():
         if not line or line.startswith("RecordType\t"):
@@ -66,9 +68,20 @@ def import_tsv(manager: ModManager, path: str | Path) -> int:
         if not field:
             continue
 
-        enc = rec.mod_file.encoding if rec.mod_file else TesEncoding.CP1252
+        current_enc = rec.mod_file.encoding if rec.mod_file else TesEncoding.CP1252
+        if field.to_display_str(current_enc) == text:
+            continue
+
+        enc = manager.active_patch.encoding
         new_bytes = TesBytes.from_str(text, enc, null_terminate=(ff.data_type == "zstring"))
-        field.modify(new_bytes)
-        updated += 1
+        field, rec = manager.prepare_field_for_edit(rec, field)
+        changed = manager.apply_field_data(
+            field,
+            rec,
+            new_bytes,
+            description=f"TSV: {rtype} {key} / {fname}",
+        )
+        if changed:
+            updated += 1
 
     return updated

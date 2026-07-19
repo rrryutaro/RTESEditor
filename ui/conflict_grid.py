@@ -1,7 +1,7 @@
 from __future__ import annotations
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QPalette
+from PySide6.QtGui import QBrush, QColor, QPalette
 from app.record_info import RecordInfo
 from app.record_fields import get_display_field
 
@@ -56,6 +56,9 @@ class ConflictGrid(QTableWidget):
             name_item.setBackground(QBrush(self.palette().color(QPalette.Button)))
             name_item.setForeground(QBrush(self.palette().color(QPalette.ButtonText)))
             name_item.setData(Qt.UserRole + 1, record)  # 所属 Record
+            if manager.is_record_deleted(record):
+                name_item.setForeground(QBrush(QColor("darkred")))
+                name_item.setToolTip(self.tr("ゲーム内削除扱い"))
             self.setItem(row_idx, 0, name_item)
             for col_idx, ff in enumerate(field_fmts):
                 field = get_display_field(record, ff.field_name)
@@ -63,6 +66,11 @@ class ConflictGrid(QTableWidget):
                 item  = QTableWidgetItem(text)
                 item.setData(Qt.UserRole,     field)   # Field オブジェクト
                 item.setData(Qt.UserRole + 1, record)  # 所属 Record
+                if manager.is_record_deleted(record):
+                    item.setForeground(QBrush(QColor("darkred")))
+                    font = item.font()
+                    font.setStrikeOut(True)
+                    item.setFont(font)
                 self.setItem(row_idx, col_idx + 1, item)
 
         self.resizeColumnsToContents()
@@ -78,13 +86,11 @@ class ConflictGrid(QTableWidget):
 
         ff      = getattr(field, "field_format", None)
         is_edit = ff is not None and ff.is_edit
-        is_save = (record is not None and
-                   record.mod_file is not None and
-                   record.mod_file.is_save)
+        has_patch = self._main.manager.active_patch is not None
 
-        if field is not None and is_edit and is_save:
-            # 保存対象ファイルの編集可能フィールド → TextPanel を編集モードで開く
-            self._main.text_panel.set_conflict_cell(current.text(), field, record)
+        if field is not None and record is not None and is_edit and has_patch:
+            # 参照元は直接変更せず、適用時に編集先パッチへコピーする。
+            self._main.text_panel.set_record_field(current.text(), field, record)
         else:
             # 参照専用
             self._main.text_panel.set_text(current.text())

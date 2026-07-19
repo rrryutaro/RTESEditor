@@ -126,8 +126,16 @@ def import_localization_json(
     manager: ModManager,
     path: str | Path,
     target_encoding: TesEncoding = TesEncoding.UTF_8,
+    *,
+    copy_to_active_patch: bool = True,
 ) -> LocalizationImportResult:
-    """Import translated JSON entries and write them into loaded records."""
+    """Import translated JSON entries into the active patch."""
+    if copy_to_active_patch:
+        patch = manager.active_patch
+        if patch is None:
+            raise RuntimeError("ローカライズJSONを取り込む前に編集先パッチを指定してください。")
+        # 読み込まれた既存レコードとの混在を避け、編集先パッチの指定エンコードを使う。
+        target_encoding = patch.encoding
     raw = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     entries = raw.get("entries", [])
     result = LocalizationImportResult(warnings=[])
@@ -137,7 +145,9 @@ def import_localization_json(
     for entry in entries:
         entry_type = entry.get("type")
         if entry_type == "field":
-            _import_field_entry(manager, entry, target_encoding, result)
+            _import_field_entry(
+                manager, entry, target_encoding, result, copy_to_active_patch
+            )
         elif entry_type in ("script_string", "result_string"):
             key = (
                 str(entry.get("record_type", "")),
@@ -150,18 +160,27 @@ def import_localization_json(
             result.skipped += 1
 
     for key, group_entries in script_groups.items():
-        _import_script_string_entries(manager, key, group_entries, target_encoding, result)
+        _import_script_string_entries(
+            manager,
+            key,
+            group_entries,
+            target_encoding,
+            result,
+            copy_to_active_patch,
+        )
 
     _apply_cell_name_reference_updates(
         manager,
         cell_name_translations,
         target_encoding,
         result,
+        copy_to_active_patch,
     )
 
-    for mod in manager.mod_files:
-        if any(record.is_modified for record in mod.records):
-            mod.encoding = target_encoding
+    if not copy_to_active_patch:
+        for mod in manager.mod_files:
+            if any(record.is_modified for record in mod.records):
+                mod.encoding = target_encoding
 
     return result
 
@@ -188,6 +207,7 @@ def _apply_cell_name_reference_updates(
     translations: dict[str, str],
     target_encoding: TesEncoding,
     result: LocalizationImportResult,
+    copy_to_active_patch: bool,
 ) -> None:
     if not translations:
         return
@@ -201,16 +221,26 @@ def _apply_cell_name_reference_updates(
                 translation = translations.get(source)
                 if translation is None:
                     continue
-                _write_zstring_field(record, field, translation, target_encoding)
-                result.updated += 1
+                changed = _write_zstring_field(
+                    manager, record, field, translation, target_encoding, copy_to_active_patch
+                )
+                if changed:
+                    result.updated += 1
+                else:
+                    result.skipped += 1
         elif record.record_type == "PGRD":
             for _field_index, field in iter_field_occurrences(record, "NAME"):
                 source = _field_as_zstring(field, _record_encoding(record))
                 translation = translations.get(source)
                 if translation is None:
                     continue
-                _write_zstring_field(record, field, translation, target_encoding)
-                result.updated += 1
+                changed = _write_zstring_field(
+                    manager, record, field, translation, target_encoding, copy_to_active_patch
+                )
+                if changed:
+                    result.updated += 1
+                else:
+                    result.skipped += 1
 
 
 def _iter_main_records(manager: ModManager):
@@ -339,6 +369,7 @@ def _import_field_entry(
     entry: dict[str, Any],
     target_encoding: TesEncoding,
     result: LocalizationImportResult,
+    copy_to_active_patch: bool,
 ) -> None:
     translation = str(entry.get("translation", ""))
     if not translation:
@@ -369,8 +400,13 @@ def _import_field_entry(
         )
         return
 
-    _write_text_field(record, field, translation, target_encoding)
-    result.updated += 1
+    changed = _write_text_field(
+        manager, record, field, translation, target_encoding, copy_to_active_patch
+    )
+    if changed:
+        result.updated += 1
+    else:
+        result.skipped += 1
 
 
 def _import_script_string_entries(
@@ -379,6 +415,7 @@ def _import_script_string_entries(
     entries: list[dict[str, Any]],
     target_encoding: TesEncoding,
     result: LocalizationImportResult,
+    copy_to_active_patch: bool,
 ) -> None:
     record_type, record_key, field_name, field_index = key
     probe = {"record_type": record_type, "record_key": record_key}
@@ -425,8 +462,13 @@ def _import_script_string_entries(
         return
 
     updated = _replace_string_literals(current, literals, replacements)
-    _write_text_field(record, field, updated, target_encoding)
-    result.updated += len(replacements)
+    changed = _write_text_field(
+        manager, record, field, updated, target_encoding, copy_to_active_patch
+    )
+    if changed:
+        result.updated += len(replacements)
+    else:
+        result.skipped += len(replacements)
 
 
 def _find_record(manager: ModManager, entry: dict[str, Any]) -> Record | None:
@@ -437,23 +479,55 @@ def _find_record(manager: ModManager, entry: dict[str, Any]) -> Record | None:
 
 
 def _write_text_field(
+    manager: ModManager,
     record: Record,
     field: Field,
     value: str,
     target_encoding: TesEncoding,
-) -> None:
+    copy_to_active_patch: bool,
+) -> bool:
+    if copy_to_active_patch and field.to_display_str(_record_encoding(record)) == value:
+        return False
     ff = field.field_format or (record.record_format.get_field(field.field_type) if record.record_format else None)
     null_terminate = bool(ff and ff.data_type == "zstring")
-    field.modify(TesBytes.from_str(value, target_encoding, null_terminate=null_terminate))
+    data = TesBytes.from_str(value, target_encoding, null_terminate=null_terminate)
+    if copy_to_active_patch:
+        field, record = manager.prepare_field_for_edit(record, field)
+        return manager.apply_field_data(
+            field,
+            record,
+            data,
+            description=f"翻訳: {record.record_type} {record.primary_key} / {field.field_type}",
+        )
+    if field.data.raw() == data.raw():
+        return False
+    field.modify(data)
+    return True
 
 
 def _write_zstring_field(
+    manager: ModManager,
     record: Record,
     field: Field,
     value: str,
     target_encoding: TesEncoding,
-) -> None:
-    field.modify(TesBytes.from_str(value, target_encoding, null_terminate=True))
+    copy_to_active_patch: bool,
+) -> bool:
+    if copy_to_active_patch and field.to_display_str(_record_encoding(record)) == value:
+        return False
+    data = TesBytes.from_str(value, target_encoding, null_terminate=True)
+    if copy_to_active_patch:
+        field, record = manager.prepare_field_for_edit(record, field)
+        return manager.apply_field_data(
+            field,
+            record,
+            data,
+            description=f"翻訳: {record.record_type} {record.primary_key} / {field.field_type}",
+        )
+    if field.data.raw() == data.raw():
+        return False
+    field.modify(data)
+    return True
 
 
 def _field_as_zstring(field: Field, encoding: TesEncoding) -> str:

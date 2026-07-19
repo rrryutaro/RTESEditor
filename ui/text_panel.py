@@ -1,22 +1,26 @@
 from __future__ import annotations
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QPlainTextEdit, QPushButton,
-)
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 
 class TextPanel(QWidget):
-    """長文テキスト編集パネル（適用/キャンセルボタン付き）"""
+    """編集内容を必ずアクティブパッチへ反映する長文テキストパネル。"""
 
     def __init__(self, main_window):
         super().__init__(main_window)
         self._main = main_window
-        self._current_item   = None   # RecordGrid の QTableWidgetItem
-        self._current_field  = None   # ConflictGrid 経由の Field オブジェクト
-        self._current_record = None   # ConflictGrid 経由の Record オブジェクト
-        self._original_text  = ""
+        self._current_field = None
+        self._current_record = None
+        self._original_text = ""
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -28,56 +32,49 @@ class TextPanel(QWidget):
         self._edit.setTabStopDistance(32)
         layout.addWidget(self._edit)
 
-        btn_row = QHBoxLayout()
-        self._apply_btn  = QPushButton(self.tr("適用"))
+        button_row = QHBoxLayout()
+        self._apply_btn = QPushButton(self.tr("編集先パッチへ適用"))
         self._cancel_btn = QPushButton(self.tr("キャンセル"))
         self._apply_btn.clicked.connect(self._on_apply)
         self._cancel_btn.clicked.connect(self._on_cancel)
-        btn_row.addStretch()
-        btn_row.addWidget(self._apply_btn)
-        btn_row.addWidget(self._cancel_btn)
-        layout.addLayout(btn_row)
-
+        button_row.addStretch()
+        button_row.addWidget(self._apply_btn)
+        button_row.addWidget(self._cancel_btn)
+        layout.addLayout(button_row)
         self._set_editable(False)
 
-    # ------------------------------------------------------------------
-    # 公開 API
-    # ------------------------------------------------------------------
-
     def set_text(self, text: str, item=None) -> None:
-        """RecordGrid セル用。item が None または読み取り専用の場合は read-only になる。"""
-        self._original_text  = text
-        self._current_item   = item
-        self._current_field  = None
-        self._current_record = None
-        self._edit.blockSignals(True)
-        self._edit.setPlainText(text)
-        self._edit.blockSignals(False)
-        self._set_editable(self._is_editable(item))
+        """参照専用テキストを表示する。item引数は旧呼出しとの互換用。"""
+        if item is not None:
+            field = item.data(Qt.UserRole)
+            record = item.data(Qt.UserRole + 1)
+            self.set_record_field(text, field, record)
+            return
+        self._set_value(text, None, None, False)
+
+    def set_record_field(self, text: str, field, record) -> None:
+        field_format = getattr(field, "field_format", None)
+        editable = (
+            field is not None
+            and record is not None
+            and field_format is not None
+            and field_format.is_edit
+            and self._main.manager.active_patch is not None
+        )
+        self._set_value(text, field, record, editable)
 
     def set_conflict_cell(self, text: str, field, record) -> None:
-        """ConflictGrid の編集可能セル用（Field オブジェクトを直接変更する）。"""
-        self._original_text  = text
-        self._current_item   = None
-        self._current_field  = field
+        """旧APIとの互換用。"""
+        self.set_record_field(text, field, record)
+
+    def _set_value(self, text: str, field, record, editable: bool) -> None:
+        self._original_text = text
+        self._current_field = field
         self._current_record = record
         self._edit.blockSignals(True)
         self._edit.setPlainText(text)
         self._edit.blockSignals(False)
-        self._set_editable(True)
-
-    # ------------------------------------------------------------------
-    # 内部
-    # ------------------------------------------------------------------
-
-    def _is_editable(self, item) -> bool:
-        if item is None:
-            return False
-        field = item.data(Qt.UserRole)
-        if field is None:
-            return False
-        ff = getattr(field, "field_format", None)
-        return ff is not None and ff.is_edit
+        self._set_editable(editable)
 
     def _set_editable(self, editable: bool) -> None:
         self._edit.setReadOnly(not editable)
@@ -85,59 +82,45 @@ class TextPanel(QWidget):
         self._cancel_btn.setEnabled(editable)
 
     def _on_apply(self) -> None:
+        if self._current_field is None or self._current_record is None:
+            return
+        from core.bytes_util import TesBytes
+
         new_text = self._edit.toPlainText()
-
-        if self._current_item is not None:
-            # RecordGrid 経由: セルのテキストを変更 → itemChanged → _on_cell_changed
-            self._current_item.setText(new_text)
-            self._original_text = new_text
-
-        elif self._current_field is not None:
-            # ConflictGrid 経由: Field を直接変更
-            from core.bytes_util import TesBytes
-            from core.encoding import TesEncoding
-            ff  = getattr(self._current_field, "field_format", None)
-            enc = (self._current_record.mod_file.encoding
-                   if self._current_record and self._current_record.mod_file
-                   else TesEncoding.CP1252)
-            null_terminate = ff is not None and ff.data_type == "zstring"
-            new_bytes = TesBytes.from_str(new_text, enc, null_terminate=null_terminate)
-            self._current_field.modify(new_bytes)
-            self._original_text = new_text
-
-            # RecordGrid の表示を更新（main_record が変わった場合）
-            self._update_record_grid_after_conflict_edit(new_text)
-
-    def _update_record_grid_after_conflict_edit(self, new_text: str) -> None:
-        """ConflictGrid 編集後に RecordGrid と ConflictGrid の表示を同期する。"""
-        rec_grid = self._main.record_grid
-        row = rec_grid.currentRow()
-        if row < 0:
-            return
-        first_item = rec_grid.item(row, 0)
-        if not first_item:
-            return
-        info = first_item.data(Qt.UserRole + 1)
-        if not info:
+        if new_text == self._original_text:
+            self._main.statusBar().showMessage(self.tr("変更はありません。"), 3000)
             return
 
-        # main_record がこのレコードなら RecordGrid のセルも更新
-        if info.main_record is self._current_record:
-            field_type = self._current_field.field_type
-            from core.encoding import TesEncoding
-            enc = (self._current_record.mod_file.encoding
-                   if self._current_record.mod_file else TesEncoding.CP1252)
-            for col, ff in enumerate(rec_grid._field_fmts):
-                if ff.field_name == field_type and not rec_grid.isColumnHidden(col):
-                    rec_grid.blockSignals(True)
-                    cell = rec_grid.item(row, col)
-                    if cell:
-                        cell.setText(self._current_field.to_display_str(enc))
-                    rec_grid.blockSignals(False)
-                    break
+        try:
+            field_format = getattr(self._current_field, "field_format", None)
+            patch = self._main.manager.active_patch
+            if patch is None:
+                raise RuntimeError("編集先パッチが指定されていません。")
+            # 変換に失敗した場合、オーバーライドを作る前に終了する。
+            data = TesBytes.from_str(
+                new_text,
+                patch.encoding,
+                null_terminate=(
+                    field_format is not None and field_format.data_type == "zstring"
+                ),
+            )
+            target_field, target_record = self._main.manager.prepare_field_for_edit(
+                self._current_record,
+                self._current_field,
+            )
+            self._main.manager.apply_field_data(
+                target_field,
+                target_record,
+                data,
+            )
+        except (UnicodeEncodeError, RuntimeError, ValueError) as exc:
+            QMessageBox.warning(self, self.tr("編集を適用できません"), str(exc))
+            return
 
-        # ConflictGrid を再ロード
-        self._main.conflict_grid.load(info)
+        self._original_text = new_text
+        self._current_field = target_field
+        self._current_record = target_record
+        self._main.refresh_after_patch_edit()
 
     def _on_cancel(self) -> None:
         self._edit.blockSignals(True)
